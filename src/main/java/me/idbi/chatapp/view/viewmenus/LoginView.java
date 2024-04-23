@@ -1,0 +1,40 @@
+package me.idbi.chatapp.view.viewmenus;
+
+import me.idbi.chatapp.Main;
+import me.idbi.chatapp.utils.TerminalManager;
+import me.idbi.chatapp.view.IView;
+import me.idbi.chatapp.view.ViewType;
+
+import java.util.concurrent.TimeUnit;
+
+public class LoginView implements IView {
+
+    public LoginView() {
+
+    }
+
+    @Override
+    public boolean isCursor() {
+        return false;
+    }
+
+    @Override
+    public void show() {
+        Main.getTerminalManager().center("Chatapp+", TerminalManager.Style.BOLD,TerminalManager.Color.CYAN);
+        System.out.println();
+        Main.getTerminalManager().center("Csatlakozás...", TerminalManager.Style.BOLD);
+        System.out.println();
+        if (!Main.getClient().connect()) {
+            Main.getTerminalManager().center("Sikertelen csatlakozás. :(", TerminalManager.Style.BOLD, TerminalManager.Color.RED);
+            try {
+                Thread.sleep(3000);
+                Main.getTerminalManager().clear();
+                System.exit(-1);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+
+    }
+}
