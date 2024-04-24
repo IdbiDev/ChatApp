@@ -5,6 +5,7 @@ import me.idbi.chatapp.Main;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.packets.client.RoomJoinPacket;
 import me.idbi.chatapp.view.IView;
+import me.idbi.chatapp.view.ViewType;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -26,12 +27,11 @@ public class RoomJoinView implements IView {
 
     @Override
     public void show() {
-        System.out.print("Jelszó > ");
-        Scanner scn = new Scanner(System.in, StandardCharsets.UTF_8);
-
-        if(scn.hasNextLine()) {
-            String psw = scn.nextLine();
-            Main.getClient().sendPacket(new RoomJoinPacket(room.getName(), psw));
+        String pw =  Main.getInputManager().getInput("Jelszó > ");
+        if(pw.equalsIgnoreCase("cancel") || pw.equalsIgnoreCase("back")) {
+            Main.getViewManager().changeView(ViewType.ROOM_LIST);
+            return;
         }
+        Main.getClient().sendPacket(new RoomJoinPacket(room.getName(), pw));
     }
 }
