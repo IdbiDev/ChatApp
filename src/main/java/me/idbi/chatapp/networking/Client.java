@@ -84,18 +84,11 @@ public class Client {
 
                         if (packetObject instanceof LoginPacket packet) {
                             new ClientLoginEvent().callEvent();
-
-
                         } else if (packetObject instanceof ReceiveRefreshPacket packet) {
-                            for (Map.Entry<String, Room> stringRoomEntry : packet.getRooms().entrySet()) {
-                                System.out.println(stringRoomEntry.getKey() + "   " + stringRoomEntry.getValue().getPassword());
-                            }
-
                             new ClientRefreshEvent(packet.getRooms()).callEvent();
                         } else if (packetObject instanceof RoomJoinResultPacket packet) {
                             ClientRoomJoinEvent joinEvent = new ClientRoomJoinEvent(packet.getRoom(), packet.getResult());
                             joinEvent.callEvent();
-
                         } else if (packetObject instanceof PingPacket packet) {
                             client.sendPacket(new PongPacket());
                         }

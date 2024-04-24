@@ -23,12 +23,18 @@ import java.io.IOException;
 import java.nio.IntBuffer;
 
 public class TerminalManager {
-    @Getter private final Terminal terminal;
-    @Getter @Setter
+    @Getter
+    private final Terminal terminal;
+    @Getter
+    @Setter
     private boolean canWrite = true;
-    @Getter private KeyboardListener keyboardListener;
+    @Getter
+    private final KeyboardListener keyboardListener;
+    @Getter
+    private final Thread keyboardThread;
 
-    public interface TerminalFormatter {}
+    public interface TerminalFormatter {
+    }
 
     @Getter
     @AllArgsConstructor
@@ -58,14 +64,16 @@ public class TerminalManager {
             return this.code;
         }
     }
+
     @Getter
     @AllArgsConstructor
-    public static enum Screen implements TerminalFormatter  {
+    public static enum Screen implements TerminalFormatter {
         CLEAR("\u001B[2J"),
         CLEAR_LINE("\u001B[K"),
         SIZE("\u001B[8;%d;%d"); // rows, columns
 
         private final String code;
+
         public String format(Object... args) {
             return String.format(code, args);
         }
@@ -75,9 +83,10 @@ public class TerminalManager {
             return this.code;
         }
     }
+
     @Getter
     @AllArgsConstructor
-    public static enum Style implements TerminalFormatter  {
+    public static enum Style implements TerminalFormatter {
         RESET("\u001B[0m"),
         BOLD("\u001B[1m"),
         FAINT("\u001B[2m"),
@@ -97,9 +106,10 @@ public class TerminalManager {
             return this.code;
         }
     }
+
     @Getter
     @AllArgsConstructor
-    public static enum Cursor implements TerminalFormatter  {
+    public static enum Cursor implements TerminalFormatter {
         UP("\u001B[%dA"),      // Move cursor up by n rows
         DOWN("\u001B[%dB"),    // Move cursor down by n rows
         FORWARD("\u001B[%dC"), // Move cursor forward by n columns
@@ -110,81 +120,113 @@ public class TerminalManager {
         RESTORE_POSITION("\u001B[u");  // Restore cursor position
 
         private final String code;
+
         public String format(Object... args) {
             return String.format(code, args);
         }
+
         @Override
         public String toString() {
             return this.code;
         }
     }
+
     public void moveCursor(int row, int column) {
-        System.out.print(Cursor.TO_POSITION.format(row,column));
+        System.out.print(Cursor.TO_POSITION.format(row, column));
     }
+
     public void moveCursorUp(int n) {
         System.out.print(Cursor.UP.format(n));
     }
+
     public void moveCursorDown(int n) {
         System.out.print(Cursor.DOWN.format(n));
     }
+
     public void moveCursorLeft(int n) {
         System.out.print(Cursor.BACKWARD.format(n));
     }
+
     public void moveCursorRight(int n) {
         System.out.print(Cursor.FORWARD.format(n));
     }
+
     public void saveCursor() {
         System.out.print(Cursor.SAVE_POSITION);
     }
+
     public void restoreCursor() {
         System.out.print(Cursor.RESTORE_POSITION);
     }
+
     public void clear() {
-        try
-        {
+        try {
             final String os = System.getProperty("os.name");
 
-            if (os.contains("Windows"))
-            {
+            if (os.contains("Windows")) {
                 new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-            }
-            else
-            {
+            } else {
                 Runtime.getRuntime().exec("clear");
             }
-        }
-        catch (final Exception e)
-        {
+        } catch (final Exception e) {
             //  Handle any exceptions.
         }
     }
+
     public void toBold() {
         System.out.print(Style.BOLD);
     }
+
     public void toUnderline() {
         System.out.print(Style.UNDERLINE);
     }
+
     public void toItalic() {
         System.out.print(Style.ITALIC);
     }
+
     public void resetStyle() {
         System.out.print(Style.RESET);
     }
+
     public void home() {
         System.out.print(Cursor.HOME);
     }
+
     public int getWidth() {
         return terminal.getWidth();
     }
+
     public int getHeight() {
         return terminal.getHeight();
     }
+
     public void showCursor() {
         System.out.print(Style.SHOW_CURSOR);
     }
+
+    /**
+     *
+     * @param color background color
+     * This function will clear the screen!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     */
+    public void setBackgroundColor(Color color) {
+        clear();
+        home();
+        System.out.print(color);
+        for (int i = 0; i < getHeight(); i++) {
+            for (int i1 = 0; i1 < getWidth(); i1++) {
+                System.out.print(" ");
+            }
+            System.out.println();
+        }
+        home();
+    }
+
     public void hideCursor() {
         System.out.print(Style.HIDE_CURSOR);
     }
+
     public void center(String text) {
         System.out.print(Screen.CLEAR_LINE);
         moveCursorRight(getWidth() / 2 - text.length() / 2);
@@ -201,21 +243,26 @@ public class TerminalManager {
         System.out.print(text);
         resetStyle();
     }
+
     public TerminalManager() throws IOException {
         terminal = TerminalBuilder.terminal();
         clear();
         System.out.print(Cursor.HOME);
         terminal.enterRawMode();
         this.keyboardListener = new KeyboardListener(this);
-        Thread t = new Thread(this.keyboardListener);
-        t.start();
+        keyboardThread = new Thread(this.keyboardListener);
+        keyboardThread.start();
 
 
     }
+
     public static class KeyboardListener implements Runnable {
 
         private final TerminalManager terminal;
-        @Getter private String buffer;
+        @Getter
+        @Setter
+        private String buffer;
+
         public KeyboardListener(TerminalManager terminal) {
             this.terminal = terminal;
             this.buffer = "";
@@ -225,12 +272,14 @@ public class TerminalManager {
         public void run() {
             NonBlockingReader nonBlockingReader = terminal.getTerminal().reader();
             while (true) {
-                if(!terminal.isCanWrite())
+                if (!terminal.isCanWrite()){
                     continue;
+                }
                 try {
                     int key = nonBlockingReader.read();
-                    if(key == 27) {
-                        if(nonBlockingReader.read() == 79) {
+
+                    if (key == 27) {
+                        if (nonBlockingReader.read() == 79) {
                             switch (nonBlockingReader.read()) {
                                 case 65:
                                     //Fel nyíl
@@ -253,15 +302,16 @@ public class TerminalManager {
                     }
                     switch (key) {
                         case 13: // Enter
-                            if(Main.getTableManager().getCurrentTable() != null && Main.getViewManager().getCurrentView() != null) {
-                                if(Main.getViewManager().getCurrentView() instanceof RoomListView) {
+                            if (Main.getTableManager().getCurrentTable() != null && Main.getViewManager().getCurrentView() != null) {
+                                if (Main.getViewManager().getCurrentView() instanceof RoomListView) {
                                     String selectedRoomName = Main.getTableManager().getCurrentTable().getSelectedRow().getLine();
-                                    if(Main.getRooms().containsKey(selectedRoomName)) {
+                                    if (Main.getRooms().containsKey(selectedRoomName)) {
                                         Room selectedRoom = Main.getRooms().get(selectedRoomName);
 
-                                        if(!selectedRoom.hasPassword()) {
+                                        if (!selectedRoom.hasPassword()) {
                                             Main.getClient().sendPacket(new RoomJoinPacket(selectedRoom.getName(), selectedRoom.getPassword()));
                                         } else {
+
                                             ((RoomJoinView) ViewType.ROOM_JOIN.getView()).setRoom(selectedRoom);
                                             Main.getViewManager().changeView(ViewType.ROOM_JOIN);
                                         }
@@ -270,12 +320,15 @@ public class TerminalManager {
                             }
                             buffer = "";
                             break;
-                        case 27: // escape
+                        case 27: // escap
                             if (Main.getViewManager().getCurrentView() instanceof RoomJoinView) {
+                                buffer = "";
+                                this.terminal.canWrite = false;
                                 Main.getViewManager().changeView(ViewType.ROOM_LIST);
                             }
+                            break;
                         case 8: // Backspace
-                            if(buffer.isEmpty()) continue;
+                            if (buffer.isEmpty()) continue;
                             buffer = buffer.substring(0, buffer.length() - 1); // utolsót szedje ki char he? na mé -2?XD ahogy megy xd
                             break;
                         default:
@@ -283,10 +336,11 @@ public class TerminalManager {
                             break;
                     }
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
 
+                    //throw new RuntimeException(e);
+                }
             }
+            //System.out.println("KILLPETT TA WHILE LLOOPBÓl");
         }
     }
 }

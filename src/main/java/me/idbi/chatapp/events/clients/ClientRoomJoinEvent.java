@@ -7,6 +7,8 @@ import me.idbi.chatapp.eventmanagers.interfaces.Cancellable;
 import me.idbi.chatapp.eventmanagers.interfaces.Event;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.utils.RoomJoinResult;
+import me.idbi.chatapp.view.ViewManager;
+import me.idbi.chatapp.view.ViewType;
 import org.jetbrains.annotations.Nullable;
 
 @Getter
@@ -38,8 +40,14 @@ public class ClientRoomJoinEvent extends Event implements Cancellable {
             System.out.println("Cancellelve a room join");
             return false;
         } else {
-            System.out.println(result);
-            System.out.println(room.getName());
+            if(result != RoomJoinResult.SUCCESS) {
+                Main.getViewManager().changeView(ViewType.ROOM_JOIN);
+                //Main.getViewManager().changeView(ViewType,
+                // 25448787.ROOM_LIST);
+            } else {
+                Main.getViewManager().threadedView(ViewType.ROOM_CHAT);
+            }
+
             return true;
         }
     }

@@ -8,6 +8,7 @@ import me.idbi.chatapp.networking.Client;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.networking.Server;
 import me.idbi.chatapp.table.TableManager;
+import me.idbi.chatapp.utils.InputManager;
 import me.idbi.chatapp.utils.TerminalManager;
 import me.idbi.chatapp.view.ViewManager;
 import me.idbi.chatapp.view.ViewType;
@@ -32,6 +33,7 @@ public class Main implements Listener {
 
     @Getter private static ViewManager viewManager;
     @Getter private static EventManager eventManager;
+    @Getter private static InputManager inputManager;
     @Getter private static TableManager tableManager;
     @Getter private static Client client;
     @Getter private static TerminalManager terminalManager;
@@ -39,7 +41,7 @@ public class Main implements Listener {
 
 
     // Server //
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
 //        Terminal terminal = TerminalBuilder.terminal();
 //        terminal.enterRawMode();
 //        NonBlockingReader nonBlockingReader = terminal.reader();
@@ -49,13 +51,15 @@ public class Main implements Listener {
 
         eventManager = new EventManager();
         if(args.length == 0) {
+            inputManager = new InputManager();
             rooms = new HashMap<>();
             terminalManager = new TerminalManager();
+            //Thread.sleep(2000);
             tableManager = new TableManager();
             //Client
-            client = new Client("127.0.0.1",5000);
+            //client = new Client("127.0.0.1",5000);
             viewManager = new ViewManager();
-            viewManager.changeView(ViewType.LOGIN);
+            viewManager.changeView(ViewType.GLOBAL_BAN);
         }else {
 
             Server server = new Server(5000);

@@ -2,7 +2,9 @@ package me.idbi.chatapp.networking;
 
 import lombok.Getter;
 import me.idbi.chatapp.events.clients.ClientLoginEvent;
+import me.idbi.chatapp.events.servers.ServerClientDisconnectEvent;
 import me.idbi.chatapp.events.servers.ServerRoomJoinEvent;
+import me.idbi.chatapp.events.servers.ServerStartEvent;
 import me.idbi.chatapp.packets.ServerPacket;
 import me.idbi.chatapp.packets.client.HandshakePacket;
 import me.idbi.chatapp.packets.client.PongPacket;
@@ -15,6 +17,7 @@ import me.idbi.chatapp.packets.server.RoomJoinResultPacket;
 import me.idbi.chatapp.utils.RoomJoinResult;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -44,6 +47,7 @@ public class Server {
             this.rooms.put("Patrik szobája",new Room("Patrik szobája",null, "szeretemakekszetésaszexet<3", new ArrayList<>(), 2));
             this.rooms.put("GYVAKK Admin",new Room("GYVAKK Admin",null, "admin", new ArrayList<>(), 10));
             this.serverSocket = new ServerSocket(port);
+            //this.serverSocket.bind(new InetSocketAddress(port));
             this.listener = new ConnectionListener(this);
             System.out.println("Started thread");
             Thread t = new Thread(this.listener);
@@ -51,6 +55,7 @@ public class Server {
             this.heartbeatListener = new HeartBeatTimer(this);
             t = new Thread(this.heartbeatListener);
             t.start();
+            new ServerStartEvent(port).callEvent();
             this.serverLoop();
         } catch (IOException e) {
             System.out.println(e.getMessage());
@@ -64,6 +69,8 @@ public class Server {
             out.flush();
         } catch (IOException e) {
             if (packet instanceof PingPacket) {
+                new ServerClientDisconnectEvent(sockets.get(receiver), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
+
                 System.out.println(sockets.get(receiver).getName() + " disconnected");
                 heartbeatTable.remove(receiver);
                 sockets.remove(receiver);
@@ -88,6 +95,8 @@ public class Server {
                 if (!socket.isConnected() || socket.isClosed()) {
 
                     System.out.println("Socket is closed");
+                    new ServerClientDisconnectEvent(sockets.get(entry.getKey()), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
+
                     this.sockets.remove(socket);
                     heartbeatTable.remove(socket);
                 }
@@ -166,7 +175,7 @@ public class Server {
                     Socket socket = server.serverSocket.accept();
                     server.sockets.put(socket, new Member("asd",new ArrayList<>(), new HashMap<>()));
                     System.out.println("Accepted connection from222222 " + socket.getRemoteSocketAddress());
-                    server.heartbeatTable.put(socket,new PingPongMember());
+                    server.heartbeatTable.put(socket,new PingPongMember(0,0));
                 } catch (IOException e) {
                     System.out.println("Accept failed");
                 }
@@ -188,11 +197,11 @@ public class Server {
                 try {
                     Thread.sleep(5000);
                     for (Map.Entry<Socket, PingPongMember> entry : server.heartbeatTable.entrySet()) {
-                        System.out.println(entry.getValue().getLastPing());
                         if(entry.getValue().getLastPing()+5500 <= System.currentTimeMillis()) {
                             entry.getValue().setFailCount(entry.getValue().getFailCount()+1);
                             if (entry.getValue().getFailCount() > 3) {
                                 // disconnect
+                                new ServerClientDisconnectEvent(server.sockets.get(entry.getKey()), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
                                 System.out.println(server.sockets.get(entry.getKey()).getName() + " disconnected");
                                 server.heartbeatTable.remove(entry.getKey());
                                 server.sockets.remove(entry.getKey());

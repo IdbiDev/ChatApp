@@ -11,7 +11,7 @@ import me.idbi.chatapp.utils.RoomJoinResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ServerRoomJoinEvent extends Event implements Listener, Cancellable {
+public class ServerRoomJoinEvent extends Event implements Cancellable {
 
     @Nullable
     private final Room room;
