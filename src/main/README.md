@@ -1,0 +1,6 @@
+# GYVAKK Beszélgetők
+
+---
+
+### Parancsok:
+| 
