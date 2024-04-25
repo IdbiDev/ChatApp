@@ -45,6 +45,7 @@ public class ClientRoomJoinEvent extends Event implements Cancellable {
                 //Main.getViewManager().changeView(ViewType,
                 // 25448787.ROOM_LIST);
             } else {
+                Main.setCurrentRoom(room);
                 Main.getViewManager().threadedView(ViewType.ROOM_CHAT);
             }
 

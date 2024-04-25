@@ -1,26 +1,19 @@
 package me.idbi.chatapp.networking;
 
 import lombok.Getter;
-import me.idbi.chatapp.events.clients.ClientLoginEvent;
 import me.idbi.chatapp.events.servers.ServerClientDisconnectEvent;
+import me.idbi.chatapp.events.servers.ServerReceiveMessageEvent;
 import me.idbi.chatapp.events.servers.ServerRoomJoinEvent;
 import me.idbi.chatapp.events.servers.ServerStartEvent;
+import me.idbi.chatapp.messages.SystemMessage;
 import me.idbi.chatapp.packets.ServerPacket;
-import me.idbi.chatapp.packets.client.HandshakePacket;
-import me.idbi.chatapp.packets.client.PongPacket;
-import me.idbi.chatapp.packets.client.RequestRefreshPacket;
-import me.idbi.chatapp.packets.client.RoomJoinPacket;
-import me.idbi.chatapp.packets.server.LoginPacket;
-import me.idbi.chatapp.packets.server.PingPacket;
-import me.idbi.chatapp.packets.server.ReceiveRefreshPacket;
-import me.idbi.chatapp.packets.server.RoomJoinResultPacket;
+import me.idbi.chatapp.packets.client.*;
+import me.idbi.chatapp.packets.server.*;
 import me.idbi.chatapp.utils.RoomJoinResult;
 
 import java.io.*;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,9 +36,9 @@ public class Server {
         this.rooms = new HashMap<>();
         this.heartbeatTable = new ConcurrentHashMap<>();
         try {
-            this.rooms.put("Beszélgető",new Room("Beszélgető",null, null, new ArrayList<>(), 10));
-            this.rooms.put("Patrik szobája",new Room("Patrik szobája",null, "szeretemakekszetésaszexet<3", new ArrayList<>(), 2));
-            this.rooms.put("GYVAKK Admin",new Room("GYVAKK Admin",null, "admin", new ArrayList<>(), 10));
+            this.rooms.put("Beszélgető",new Room("Beszélgető",null, null, new ArrayList<>(), 10,new ArrayList<>()));
+            this.rooms.put("Patrik szobája",new Room("Patrik szobája",null, "szeretemakekszetésaszexet<3", new ArrayList<>(), 2,new ArrayList<>()));
+            this.rooms.put("GYVAKK Admin",new Room("GYVAKK Admin",null, "admin", new ArrayList<>(), 10,new ArrayList<>()));
             this.serverSocket = new ServerSocket(port);
             //this.serverSocket.bind(new InetSocketAddress(port));
             this.listener = new ConnectionListener(this);
@@ -78,7 +71,11 @@ public class Server {
             }
             e.printStackTrace();
         }
+    }
 
+    private Socket getSocketByMember(Member member) {
+        if(!sockets.containsValue(member)) return null;
+        return sockets.entrySet().stream().filter(element -> element.getValue().equals(member)).findAny().get().getKey();
     }
 
     private void serverLoop() {
@@ -137,8 +134,18 @@ public class Server {
                                 sendPacket(socket, new RoomJoinResultPacket(event.getResult(), selectedRoom));
                                 if(result == RoomJoinResult.SUCCESS) {
                                     selectedRoom.getMembers().add(entry.getValue());
+                                    Socket socketMember;
                                     for(Member member : selectedRoom.getMembers()) {
-                                        //Send welcome system message
+                                        if((socketMember = getSocketByMember(member)) == null) {
+                                            System.out.println("EZ NLL1111111111111");
+                                            continue;
+                                        }
+                                        sendPacket(socketMember, new SendMessageToClientPacket(
+                                                new SystemMessage(
+                                                        selectedRoom,
+                                                        SystemMessage.MessageType.JOIN.setMember(entry.getValue())
+                                                )));
+
                                         //Send member joined packet
 
                                     }
@@ -149,6 +156,20 @@ public class Server {
                         } else if (packetObject instanceof PongPacket pack) {
                             this.heartbeatTable.get(entry.getKey()).setFailCount(0);
                             this.heartbeatTable.get(entry.getKey()).setLastPing(System.currentTimeMillis());
+                        }else if (packetObject instanceof SendMessageToServerPacket packet) {
+                            ServerReceiveMessageEvent event = new ServerReceiveMessageEvent(packet.getMessage());
+                            System.out.println("Received message: "+event.getMessage().getMessage());
+                            if(event.callEvent()) {
+                                Socket socketMember;
+                                for (Member member : packet.getMessage().getRoom().getMembers()) {
+                                    if((socketMember = getSocketByMember(member)) == null) {
+                                        System.out.println("EZ NLL");
+                                        continue;
+                                    }
+                                    sendPacket(socketMember, new SendMessageToClientPacket(event.getMessage()));
+                                }
+
+                            }
                         }
                     }
                 } catch (IOException | ClassNotFoundException e) {

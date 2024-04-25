@@ -17,6 +17,7 @@ import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.NonBlockingReader;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +32,10 @@ import java.util.Map;
 
 public class Main implements Listener {
 
+    @Getter private static int messagePerScroll;
+    @Getter @Setter
+    private static Room currentRoom;
+    @Getter private static SimpleDateFormat messageDateFormat;
     @Getter private static ViewManager viewManager;
     @Getter private static EventManager eventManager;
     @Getter private static InputManager inputManager;
@@ -50,19 +55,22 @@ public class Main implements Listener {
 //        }
 
         eventManager = new EventManager();
-        if(args.length == 0) {
-            inputManager = new InputManager();
-            rooms = new HashMap<>();
-            terminalManager = new TerminalManager();
-            //Thread.sleep(2000);
-            tableManager = new TableManager();
-            //Client
-            //client = new Client("127.0.0.1",5000);
-            viewManager = new ViewManager();
-            viewManager.changeView(ViewType.GLOBAL_BAN);
-        }else {
-
-            Server server = new Server(5000);
+        messageDateFormat = new SimpleDateFormat("MM.dd HH:mm");
+        if(args.length >= 1) {
+            if(args[0].equalsIgnoreCase("-client")) {
+                messagePerScroll = 3;
+                inputManager = new InputManager();
+                rooms = new HashMap<>();
+                terminalManager = new TerminalManager();
+                //Thread.sleep(2000);
+                tableManager = new TableManager();
+                //Client
+                client = new Client("192.168.1.130", 5000);
+                viewManager = new ViewManager();
+                viewManager.changeView(ViewType.LOGIN);
+            } else if(args[0].equalsIgnoreCase("-server")) {
+                Server server = new Server(5000);
+            }
         }
 
 //        viewManager = new ViewManager();

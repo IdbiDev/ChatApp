@@ -7,23 +7,20 @@ import me.idbi.chatapp.events.clients.ClientRoomJoinEvent;
 import me.idbi.chatapp.packets.client.HandshakePacket;
 import me.idbi.chatapp.packets.ClientPacket;
 import me.idbi.chatapp.packets.client.PongPacket;
-import me.idbi.chatapp.packets.server.LoginPacket;
-import me.idbi.chatapp.packets.server.PingPacket;
-import me.idbi.chatapp.packets.server.ReceiveRefreshPacket;
-import me.idbi.chatapp.packets.server.RoomJoinResultPacket;
+import me.idbi.chatapp.packets.server.*;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Map;
 
 public class Client {
 
     @Getter private Socket socket;
+
     private ClientListener listener;
-    @Getter
-    private boolean canRun = true;
-    @Getter String host;
-    @Getter int port;
+    @Getter private boolean canRun = true;
+    @Getter private String host;
+    @Getter private int port;
+    @Getter private String name;
 
 
     public Client(String host,int port) {
@@ -36,7 +33,8 @@ public class Client {
             this.listener = new ClientListener(this);
             Thread t = new Thread(this.listener);
             t.start();
-            ClientPacket packet = new HandshakePacket(System.getenv("USERNAME"));
+            this.name = System.getenv("USERNAME") + port;
+            ClientPacket packet = new HandshakePacket(this.name);
             sendPacket(packet);
             return true;
         }
@@ -91,6 +89,9 @@ public class Client {
                             joinEvent.callEvent();
                         } else if (packetObject instanceof PingPacket packet) {
                             client.sendPacket(new PongPacket());
+                        } else if (packetObject instanceof SendMessageToClientPacket packet) {
+                            System.out.println(packet.getMessage().getMessage());
+                            // new ClientReceiveMessageEvent(packet.getMessage()).callEvent();
                         }
                     }
                 } catch (IOException | ClassNotFoundException e) {
