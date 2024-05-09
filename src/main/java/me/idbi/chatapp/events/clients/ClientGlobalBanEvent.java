@@ -14,8 +14,8 @@ public class ClientGlobalBanEvent extends Event {
     @Override
     public boolean callEvent() {
         Main.getEventManager().callEvent(this);
-        Main.getTerminalManager().clear();
-        Main.getViewManager().changeView(ViewType.GLOBAL_BAN);
+        Main.getClientData().getTerminalManager().clear();
+        Main.getClientData().getViewManager().changeView(ViewType.GLOBAL_BAN);
         return true;
     }
 }

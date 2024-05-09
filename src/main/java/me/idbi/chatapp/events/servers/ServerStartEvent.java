@@ -9,4 +9,9 @@ import me.idbi.chatapp.eventmanagers.interfaces.Event;
 public class ServerStartEvent extends Event {
     private int port;
 
+    @Override
+    public boolean callEvent() {
+        System.out.println("Server started");
+        return true;
+    }
 }

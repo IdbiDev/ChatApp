@@ -27,7 +27,7 @@ public class RoomListView implements IView {
 
     @Override
     public void show() {
-        List<Room> rooms = Main.getRooms().values().stream().toList();
+        List<Room> rooms = Main.getClientData().getRooms().values().stream().toList();
         if(!rooms.isEmpty()) {
             Column name = new Column();
             name.addRow(new Row("Név", false, false, Row.Aligment.CENTER));
@@ -67,8 +67,8 @@ public class RoomListView implements IView {
             Column column = new Column(Main.getTerminalManager().getWidth() - 4);
             column.addRow(new Row("Szobák", false, false, Row.Aligment.CENTER));
             header.addColumn(column);
-            Main.getTableManager().setHeader(header);
-            Main.getTableManager().setTable(table);
+            Main.getClientData().getTableManager().setHeader(header);
+            Main.getClientData().getTableManager().setTable(table);
             return;
         }
 
@@ -76,6 +76,6 @@ public class RoomListView implements IView {
         Column column = new Column();
         column.addRow(new Row("Töltés...", false, false, Row.Aligment.CENTER));
         table.addColumn(column);
-        Main.getTableManager().setTable(table);
+        Main.getClientData().getTableManager().setTable(table);
     }
 }

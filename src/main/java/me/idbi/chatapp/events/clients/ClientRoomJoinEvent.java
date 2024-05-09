@@ -5,6 +5,8 @@ import lombok.Setter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.eventmanagers.interfaces.Cancellable;
 import me.idbi.chatapp.eventmanagers.interfaces.Event;
+import me.idbi.chatapp.messages.ClientMessage;
+import me.idbi.chatapp.networking.Client;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.utils.RoomJoinResult;
 import me.idbi.chatapp.view.ViewManager;
@@ -15,7 +17,8 @@ import org.jetbrains.annotations.Nullable;
 public class ClientRoomJoinEvent extends Event implements Cancellable {
 
     @Nullable private final Room room;
-    @Setter private final RoomJoinResult result;
+    @Setter private RoomJoinResult result;
+    private Date joinAt;
     private boolean cancelled;
 
     public ClientRoomJoinEvent(@Nullable Room room, RoomJoinResult result) {
@@ -41,12 +44,19 @@ public class ClientRoomJoinEvent extends Event implements Cancellable {
             return false;
         } else {
             if(result != RoomJoinResult.SUCCESS) {
-                Main.getViewManager().changeView(ViewType.ROOM_JOIN);
-                //Main.getViewManager().changeView(ViewType,
+                Main.getClientData().getViewManager().changeView(ViewType.ROOM_JOIN);
+                //Main.getClientData().getViewManager().changeView(ViewType,
                 // 25448787.ROOM_LIST);
             } else {
-                Main.setCurrentRoom(room);
-                Main.getViewManager().threadedView(ViewType.ROOM_CHAT);
+                Main.getClientData().getTerminalManager().clear();
+                Main.getClientData().setCurrentRoom(room, joinAt);
+
+
+                Main.getClientData().getViewManager().threadedView(ViewType.ROOM_CHAT);
+
+//                System.out.println("called room chat ");
+//                new Thread(new Client.ClientTester()).start();
+//                System.out.println("Done  room chat ");
             }
 
             return true;

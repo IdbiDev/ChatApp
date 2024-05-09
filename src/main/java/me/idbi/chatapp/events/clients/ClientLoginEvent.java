@@ -15,12 +15,12 @@ public class ClientLoginEvent extends Event {
     @Override
     public boolean callEvent() {
         Main.getEventManager().callEvent(this);
-        Main.getTerminalManager().center("Sikeres csatlakozás. :)", TerminalManager.Style.BOLD, TerminalManager.Color.GREEN);
+        Main.getClientData().getTerminalManager().center("Sikeres csatlakozás. :)", TerminalManager.Style.BOLD, TerminalManager.Color.GREEN);
         try {
             Thread.sleep(1000);
-            Main.getTerminalManager().clear();
+            Main.getClientData().getTerminalManager().clear();
             Main.getClient().sendPacket(new RequestRefreshPacket());
-            Main.getViewManager().changeView(ViewType.ROOM_LIST);
+            Main.getClientData().getViewManager().changeView(ViewType.ROOM_LIST);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

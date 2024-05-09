@@ -19,7 +19,7 @@ public class ServerRoomJoinEvent extends Event implements Cancellable {
     private final Member member;
     @Setter
     @Getter
-    private final RoomJoinResult result;
+    private RoomJoinResult result;
     private boolean cancelled;
 
     public ServerRoomJoinEvent(@NotNull Member member, @Nullable Room room, RoomJoinResult result) {

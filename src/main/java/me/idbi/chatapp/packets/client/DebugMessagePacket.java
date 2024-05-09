@@ -5,11 +5,8 @@ import lombok.Getter;
 import me.idbi.chatapp.packets.ClientPacket;
 
 import java.io.Serializable;
-import java.util.UUID;
-
 @Getter
 @AllArgsConstructor
-public class RoomJoinPacket extends ClientPacket {
-    private UUID UUID;
-    private String password;
+public class DebugMessagePacket extends ClientPacket {
+    private String message;
 }

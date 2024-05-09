@@ -24,11 +24,12 @@ public class ViewManager {
 
         this.currentView = view;
         if(view.isCursor())
-            Main.getTerminalManager().showCursor();
+            Main.getClientData().getTerminalManager().showCursor();
         else
-            Main.getTerminalManager().hideCursor();
+            Main.getClientData().getTerminalManager().hideCursor();
 //        this.currentThread = new Thread(view::show);
 //        this.currentThread.start();
+        Main.getClientData().setScrollState(0);
         view.show();
     }
     public void threadedView(ViewType view) {
@@ -38,7 +39,7 @@ public class ViewManager {
 
     public void exitView() {
         this.currentView = null;
-        Main.getTerminalManager().showCursor();
+        Main.getClientData().getTerminalManager().showCursor();
        /* if(this.currentThread != null && this.currentThread.isAlive())
             this.currentThread.interrupt();*/
 
@@ -50,13 +51,13 @@ public class ViewManager {
     }
 
     public static class ThreadView implements Runnable {
-        private ViewType view;
+        private final ViewType view;
         public ThreadView(ViewType view) {
             this.view = view;
         }
         @Override
         public void run() {
-            Main.getViewManager().changeView(view);
+            Main.getClientData().getViewManager().changeView(this.view);
         }
     }
 }

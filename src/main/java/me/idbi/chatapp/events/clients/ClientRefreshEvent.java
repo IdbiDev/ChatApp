@@ -21,8 +21,11 @@ public class ClientRefreshEvent extends Event {
     public boolean callEvent() {
         Main.getEventManager().callEvent(this);
         //Main.getClient().sendPacket(new RoomJoinPacket("GYVAKK Admin","cica"));
-        Main.setRooms(this.newRooms);
-        Main.getViewManager().refresh();
+        if(Main.getClientData().getViewManager().getCurrentView() instanceof RoomListView){
+            Main.getClientData().setRooms(this.newRooms);
+
+            Main.getClientData().getViewManager().refresh();
+        }
         return true;
     }
 }

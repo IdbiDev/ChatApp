@@ -30,6 +30,9 @@ public class Table {
             this.height = this.columns.size();
         }
     }
+    public void refreshWidth() {
+        this.columns.forEach(Column::refreshWidth);
+    }
 
     public Map<Integer, String> getTable() {
         List<Integer> borders = new ArrayList<>();

@@ -12,12 +12,11 @@ public class GlobalBanView implements IView {
 
     @Override
     public void show() {
-        Main.getTerminalManager().setBackgroundColor(TerminalManager.Color.BLUE_BACKGROUND);
+        Main.getClientData().getTerminalManager().setBackgroundColor(TerminalManager.Color.BLUE_BACKGROUND);
         System.out.println("Chatapp+\n\n\n\n\n");
 
         System.out.println(
                 """
-                \t\t\t 
                               ████
                            ████
                 ███      ████
@@ -28,6 +27,6 @@ public class GlobalBanView implements IView {
                               ████
                 """
                 );
-        System.out.println("Ki lettél tiltva az appból! Mégis mit csináltál????????");
+        System.out.println("Ki lettél tiltva!");
     }
 }

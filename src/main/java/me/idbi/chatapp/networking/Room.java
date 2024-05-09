@@ -23,4 +23,16 @@ public class Room implements Serializable {
     public boolean hasPassword() {
         return this.password != null;
     }
+
+    public void removeMember(Member member) {
+        this.members.remove(member);
+    }
+    public void addMember(Member member) {
+        this.members.add(member);
+    }
+
+    public void sendMessage(IMessage message) {
+        messages.add(message);
+        Main.getClientData().setRefreshChatRoom(true);
+    }
 }

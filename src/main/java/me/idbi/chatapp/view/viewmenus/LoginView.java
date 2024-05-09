@@ -20,15 +20,15 @@ public class LoginView implements IView {
 
     @Override
     public void show() {
-        Main.getTerminalManager().center("Chatapp+", TerminalManager.Style.BOLD,TerminalManager.Color.CYAN);
+        Main.getClientData().getTerminalManager().center("Chatapp+", TerminalManager.Style.BOLD,TerminalManager.Color.CYAN);
         System.out.println();
-        Main.getTerminalManager().center("Csatlakozás...", TerminalManager.Style.BOLD);
+        Main.getClientData().getTerminalManager().center("Csatlakozás " + Main.getClient().getName() + " névvel.", TerminalManager.Style.BOLD);
         System.out.println();
         if (!Main.getClient().connect()) {
-            Main.getTerminalManager().center("Sikertelen csatlakozás. :(", TerminalManager.Style.BOLD, TerminalManager.Color.RED);
+            Main.getClientData().getTerminalManager().center("Sikertelen csatlakozás. :(", TerminalManager.Style.BOLD, TerminalManager.Color.RED);
             try {
                 Thread.sleep(3000);
-                Main.getTerminalManager().clear();
+                Main.getClientData().getTerminalManager().clear();
                 System.exit(-1);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);

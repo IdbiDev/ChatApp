@@ -4,11 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import me.idbi.chatapp.Main;
+import me.idbi.chatapp.events.clients.ClientTerminalResizeEvent;
+import me.idbi.chatapp.messages.IMessage;
+import me.idbi.chatapp.messages.SystemMessage;
 import me.idbi.chatapp.networking.Client;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.networking.Server;
 import me.idbi.chatapp.packets.client.RoomJoinPacket;
+import me.idbi.chatapp.view.IView;
 import me.idbi.chatapp.view.ViewType;
+import me.idbi.chatapp.view.viewmenus.RoomChatView;
 import me.idbi.chatapp.view.viewmenus.RoomJoinView;
 import me.idbi.chatapp.view.viewmenus.RoomListView;
 import org.jline.reader.LineReader;
@@ -32,6 +37,12 @@ public class TerminalManager {
     private final KeyboardListener keyboardListener;
     @Getter
     private final Thread keyboardThread;
+    @Getter
+    private final boolean isWindows;
+    @Getter
+    private final TerminalResizeListener terminalResizeListener;
+    @Getter
+    private final Thread terminalResizeThread;
 
     public interface TerminalFormatter {
     }
@@ -161,9 +172,8 @@ public class TerminalManager {
 
     public void clear() {
         try {
-            final String os = System.getProperty("os.name");
 
-            if (os.contains("Windows")) {
+            if (isWindows) {
                 new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
             } else {
                 Runtime.getRuntime().exec("clear");
@@ -206,9 +216,8 @@ public class TerminalManager {
     }
 
     /**
-     *
      * @param color background color
-     * This function will clear the screen!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     *              This function will clear the screen!
      */
     public void setBackgroundColor(Color color) {
         clear();
@@ -246,6 +255,7 @@ public class TerminalManager {
 
     public TerminalManager() throws IOException {
         terminal = TerminalBuilder.terminal();
+        isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
         clear();
         System.out.print(Cursor.HOME);
         terminal.enterRawMode();
@@ -253,7 +263,36 @@ public class TerminalManager {
         keyboardThread = new Thread(this.keyboardListener);
         keyboardThread.start();
 
+        this.terminalResizeListener = new TerminalResizeListener(this);
+        terminalResizeThread = new Thread(this.terminalResizeListener);
+        terminalResizeThread.start();
 
+    }
+
+    public static class TerminalResizeListener implements Runnable {
+        private final TerminalManager terminal;
+
+        TerminalResizeListener(TerminalManager terminal) {
+            this.terminal = terminal;
+        }
+
+        @Override
+        public void run() {
+            int lastWidth = terminal.getWidth();
+            int lastHeight = terminal.getHeight();
+            while (true) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    break;
+                }
+                if (lastWidth != terminal.getWidth() || lastHeight != terminal.getHeight()) {
+                    new ClientTerminalResizeEvent(lastWidth, lastHeight, terminal.getWidth(),terminal.getHeight()).callEvent();
+                    lastWidth = terminal.getWidth();
+                    lastHeight = terminal.getHeight();
+                }
+            }
+        }
     }
 
     public static class KeyboardListener implements Runnable {
@@ -272,22 +311,31 @@ public class TerminalManager {
         public void run() {
             NonBlockingReader nonBlockingReader = terminal.getTerminal().reader();
             while (true) {
-                if (!terminal.isCanWrite()){
+                if (!terminal.isCanWrite()) {
                     continue;
                 }
                 try {
                     int key = nonBlockingReader.read();
 
                     if (key == 27) {
-                        if (nonBlockingReader.read() == 79) {
+                        int next_byte = nonBlockingReader.read();
+                        if (next_byte == 79) {
                             switch (nonBlockingReader.read()) {
                                 case 65:
                                     //Fel nyíl
-                                    Main.getTableManager().nextUp();
+                                    if (Main.getClientData().getViewManager().getCurrentView() instanceof IView.Tableable)
+                                        Main.getClientData().getTableManager().nextUp();
+                                    else if (Main.getClientData().getViewManager().getCurrentView() instanceof RoomChatView) {
+
+                                    }
                                     break;
                                 case 66:
                                     //Le nyíl
-                                    Main.getTableManager().nextDown();
+                                    if (Main.getClientData().getViewManager().getCurrentView() instanceof IView.Tableable)
+                                        Main.getClientData().getTableManager().nextDown();
+                                    else if (Main.getClientData().getViewManager().getCurrentView() instanceof RoomChatView) {
+
+                                    }
                                     break;
                                 case 67:
                                     //jobbra nyíl
@@ -298,38 +346,64 @@ public class TerminalManager {
                                     //System.out.println("Bal");
                                     break;
                             }
+                        } else if (next_byte == 91) {
+                            switch (nonBlockingReader.read()) { // 54 - 53
+                                case 54:
+                                    if (nonBlockingReader.read() == 126) { // PAGE DOWN
+                                        if(Main.getClientData().getViewManager().getCurrentView() instanceof RoomChatView) {
+                                            Main.getClientData().removeScrollState(RoomChatView.getMessagesPerScroll() * 3);
+                                        }
+
+                                        break;
+                                    }
+                                    break;
+                                case 53:
+                                    if (nonBlockingReader.read() == 126) { // PAGE UP
+                                        if(Main.getClientData().getViewManager().getCurrentView() instanceof RoomChatView view) {
+                                            List<IMessage> clientMessages = Main.getClientData().getCurrentRoom().getMessages()
+                                                    .stream()
+                                                    .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
+                                                    .toList();
+                                            Main.getClientData().addScrollState(clientMessages, RoomChatView.getMessagesPerScroll() * 3);
+                                        }
+                                        break;
+                                    }
+                                    break;
+                            }
                         }
                     }
                     switch (key) {
                         case 13: // Enter
-                            if (Main.getTableManager().getCurrentTable() != null && Main.getViewManager().getCurrentView() != null) {
-                                if (Main.getViewManager().getCurrentView() instanceof RoomListView) {
-                                    String selectedRoomName = Main.getTableManager().getCurrentTable().getSelectedRow().getLine();
-                                    if (Main.getRooms().containsKey(selectedRoomName)) {
-                                        Room selectedRoom = Main.getRooms().get(selectedRoomName);
-
-                                        if (!selectedRoom.hasPassword()) {
-                                            Main.getClient().sendPacket(new RoomJoinPacket(selectedRoom.getName(), selectedRoom.getPassword()));
-                                        } else {
-
-                                            ((RoomJoinView) ViewType.ROOM_JOIN.getView()).setRoom(selectedRoom);
-                                            Main.getViewManager().changeView(ViewType.ROOM_JOIN);
-                                        }
+                            if (Main.getClientData().getTableManager().getCurrentTable() != null && Main.getClientData().getViewManager().getCurrentView() != null) {
+                                if (Main.getClientData().getViewManager().getCurrentView() instanceof RoomListView) {
+                                    String selectedRoomName = Main.getClientData().getTableManager().getCurrentTable().getSelectedRow().getLine();
+                                    Room selectedRoom = Main.getClientData().getRooms()
+                                            .values()
+                                            .stream()
+                                            .filter(rm -> rm.getName().equalsIgnoreCase(selectedRoomName))
+                                            .findAny()
+                                            .orElse(null);
+                                    if (selectedRoom == null) break;
+                                    if (!selectedRoom.hasPassword()) {
+                                        Main.getClient().sendPacket(new RoomJoinPacket(selectedRoom.getUniqueId(), selectedRoom.getPassword()));
+                                    } else {
+                                        ((RoomJoinView) ViewType.ROOM_JOIN.getView()).setRoom(selectedRoom);
+                                        Main.getClientData().getViewManager().changeView(ViewType.ROOM_JOIN);
                                     }
                                 }
                             }
                             buffer = "";
                             break;
                         case 27: // escap
-                            if (Main.getViewManager().getCurrentView() instanceof RoomJoinView) {
+                            if (Main.getClientData().getViewManager().getCurrentView() instanceof RoomJoinView) {
                                 buffer = "";
                                 this.terminal.canWrite = false;
-                                Main.getViewManager().changeView(ViewType.ROOM_LIST);
+                                Main.getClientData().getViewManager().changeView(ViewType.ROOM_LIST);
                             }
                             break;
                         case 8: // Backspace
                             if (buffer.isEmpty()) continue;
-                            buffer = buffer.substring(0, buffer.length() - 1); // utolsót szedje ki char he? na mé -2?XD ahogy megy xd
+                            buffer = buffer.substring(0, buffer.length() - 1);
                             break;
                         default:
                             buffer += (char) key;

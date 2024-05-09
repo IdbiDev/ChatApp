@@ -14,7 +14,7 @@ public class TableManager {
 
     public void setTable(Table table) {
         this.currentTable = table;
-        Main.getTerminalManager().clear();
+        Main.getClientData().getTerminalManager().clear();
         if(this.header != null) {
             this.header.getTable().values().forEach(System.out::println);
         }
@@ -25,7 +25,7 @@ public class TableManager {
     public void nextDown() {
         if(this.currentTable == null) return;
 
-        Main.getTerminalManager().clear();
+        Main.getClientData().getTerminalManager().clear();
         this.currentTable.nextDown();
         if(this.header != null) {
             this.header.getTable().values().forEach(System.out::println);
@@ -36,7 +36,7 @@ public class TableManager {
     public void nextUp() {
         if(this.currentTable == null) return;
 
-        Main.getTerminalManager().clear();
+        Main.getClientData().getTerminalManager().clear();
         this.currentTable.nextUp();
         if(this.header != null) {
             this.header.getTable().values().forEach(System.out::println);
