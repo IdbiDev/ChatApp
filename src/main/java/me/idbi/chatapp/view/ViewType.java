@@ -12,6 +12,7 @@ public enum ViewType {
     ROOM_JOIN(new RoomJoinView()),
     GLOBAL_BAN(new GlobalBanView()),
     ROOM_CHAT(new RoomChatView()),
+    SERVER_SHUTDOWN(new ShutdownView()),
     ROOM_LIST(new RoomListView());
 
     private final IView view;

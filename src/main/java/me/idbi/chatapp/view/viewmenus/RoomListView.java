@@ -18,7 +18,7 @@ import java.util.Map;
 
 @Getter
 @Setter
-public class RoomListView implements IView {
+public class RoomListView implements IView, IView.Tableable {
 
     @Override
     public boolean isCursor() {
@@ -64,7 +64,7 @@ public class RoomListView implements IView {
             }
 
             Table header = new Table();
-            Column column = new Column(Main.getTerminalManager().getWidth() - 4);
+            Column column = new Column(el -> el.setWidth(Main.getClientData().getTerminalManager().getWidth() - 4));
             column.addRow(new Row("Szobák", false, false, Row.Aligment.CENTER));
             header.addColumn(column);
             Main.getClientData().getTableManager().setHeader(header);

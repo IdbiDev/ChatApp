@@ -12,7 +12,7 @@ import java.util.Date;
 
 @Getter
 @AllArgsConstructor
-public class RoomJoinResultPacket extends ServerPacket implements Serializable {
+public class RoomJoinResultPacket extends ServerPacket {
     private RoomJoinResult result;
     private Room room;
     private Date joinAt;

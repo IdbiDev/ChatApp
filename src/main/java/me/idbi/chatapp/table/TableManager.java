@@ -16,6 +16,7 @@ public class TableManager {
         this.currentTable = table;
         Main.getClientData().getTerminalManager().clear();
         if(this.header != null) {
+            this.header.refreshWidth();
             this.header.getTable().values().forEach(System.out::println);
         }
         if(table != null)
@@ -27,7 +28,9 @@ public class TableManager {
 
         Main.getClientData().getTerminalManager().clear();
         this.currentTable.nextDown();
+
         if(this.header != null) {
+            this.header.refreshWidth();
             this.header.getTable().values().forEach(System.out::println);
         }
         this.currentTable.getTable().values().forEach(System.out::println);
@@ -38,7 +41,9 @@ public class TableManager {
 
         Main.getClientData().getTerminalManager().clear();
         this.currentTable.nextUp();
+
         if(this.header != null) {
+            this.header.refreshWidth();
             this.header.getTable().values().forEach(System.out::println);
         }
         this.currentTable.getTable().values().forEach(System.out::println);

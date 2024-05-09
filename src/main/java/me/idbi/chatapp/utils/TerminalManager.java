@@ -26,6 +26,8 @@ import org.jline.utils.NonBlockingReader;
 
 import java.io.IOException;
 import java.nio.IntBuffer;
+import java.util.List;
+import java.util.UUID;
 
 public class TerminalManager {
     @Getter

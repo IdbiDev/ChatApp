@@ -34,7 +34,7 @@ public class ClientMessage implements IMessage, Serializable {
 
     @Override
     public boolean isSystem() {
-        return true;
+        return false;
     }
 
     @Override

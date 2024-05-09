@@ -8,6 +8,7 @@ import me.idbi.chatapp.table.rows.Row;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Setter
 @Getter
@@ -15,10 +16,22 @@ public class Column {
 
     private List<Row> rows = new ArrayList<>();
     private int width;
+    private Consumer<Column> columnWidth;
 
     public Column(int width) {
         this.width = Math.max(1, width);
         this.rows = new ArrayList<>();
+    }
+
+    public Column(Consumer<Column> column) {
+        this.width = Math.max(1, width);
+        this.columnWidth = column;
+        this.columnWidth.accept(this);
+        this.rows = new ArrayList<>();
+    }
+
+    public void refreshWidth() {
+        this.columnWidth.accept(this);
     }
 
     public Column() {

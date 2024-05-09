@@ -9,6 +9,6 @@ import java.io.Serializable;
 
 @Getter
 @AllArgsConstructor
-public class SendMessageToClientPacket extends ServerPacket implements Serializable {
+public class SendMessageToClientPacket extends ServerPacket {
     private IMessage message;
 }

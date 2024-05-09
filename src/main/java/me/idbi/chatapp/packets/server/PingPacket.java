@@ -4,5 +4,5 @@ import me.idbi.chatapp.packets.ServerPacket;
 
 import java.io.Serializable;
 
-public class PingPacket extends ServerPacket implements Serializable {
+public class PingPacket extends ServerPacket {
 }

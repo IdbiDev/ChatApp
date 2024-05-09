@@ -4,5 +4,5 @@ import me.idbi.chatapp.packets.ClientPacket;
 
 import java.io.Serializable;
 
-public class PongPacket extends ClientPacket implements Serializable {
+public class PongPacket extends ClientPacket {
 }

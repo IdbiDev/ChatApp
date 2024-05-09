@@ -8,6 +8,6 @@ import java.io.Serializable;
 
 @Getter
 @AllArgsConstructor
-public class RequestRefreshPacket extends ClientPacket implements Serializable {
+public class RequestRefreshPacket extends ClientPacket {
 }
 

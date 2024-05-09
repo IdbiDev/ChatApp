@@ -13,6 +13,8 @@ import me.idbi.chatapp.view.ViewManager;
 import me.idbi.chatapp.view.ViewType;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Date;
+
 @Getter
 public class ClientRoomJoinEvent extends Event implements Cancellable {
 
@@ -21,8 +23,9 @@ public class ClientRoomJoinEvent extends Event implements Cancellable {
     private Date joinAt;
     private boolean cancelled;
 
-    public ClientRoomJoinEvent(@Nullable Room room, RoomJoinResult result) {
+    public ClientRoomJoinEvent(@Nullable Room room, RoomJoinResult result, Date joinAt) {
         this.room = room;
+        this.joinAt = joinAt;
         this.result = result;
     }
 

@@ -1,4 +1,6 @@
 package me.idbi.chatapp.packets;
 
-public class ClientPacket {
+import java.io.Serializable;
+
+public class ClientPacket implements Serializable {
 }

@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 @Getter
 @AllArgsConstructor
-public class HandshakePacket extends ClientPacket implements Serializable {
+public class HandshakePacket extends ClientPacket {
 
     private String id;
 }

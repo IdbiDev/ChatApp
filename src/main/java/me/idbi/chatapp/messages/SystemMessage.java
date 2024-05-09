@@ -39,17 +39,28 @@ public class SystemMessage implements IMessage, Serializable {
     private String message;
     private Date date;
     private Room room;
+    private long expireTime;
 
-    public SystemMessage(Room room, String message, Date date) {
+    public SystemMessage(Room room, String message, Date date, long expireTime) {
         this.room = room;
         this.message = message;
         this.date = date;
+        this.expireTime = expireTime;
     }
 
-    public SystemMessage(Room room, String message) {
+    public SystemMessage(Room room, String message, long expireTime) {
         this.room = room;
         this.message = message;
+        this.expireTime = expireTime;
         this.date = new Date();
+    }
+
+    public boolean isExpired() {
+        return this.date.getTime() < this.expireTime;
+    }
+
+    public boolean isExpired(Date joinDate) {
+        return isExpired() && joinDate.getTime() > this.date.getTime();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package me.idbi.chatapp.networking;
 
 import lombok.Getter;
+import me.idbi.chatapp.Main;
 import me.idbi.chatapp.events.servers.ServerClientDisconnectEvent;
 import me.idbi.chatapp.events.servers.ServerReceiveMessageEvent;
 import me.idbi.chatapp.events.servers.ServerRoomJoinEvent;
@@ -14,10 +15,7 @@ import me.idbi.chatapp.utils.RoomJoinResult;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
@@ -30,16 +28,16 @@ public class Server {
     private final Map<Socket, PingPongMember> heartbeatTable;
 
 
-    private final Map<String, Room> rooms;
+    private final Map<UUID, Room> rooms;
 
     public Server(int port) {
         this.sockets = new ConcurrentHashMap<>();
         this.rooms = new HashMap<>();
         this.heartbeatTable = new ConcurrentHashMap<>();
         try {
-            this.rooms.put("Beszélgető",new Room("Beszélgető",null, null, new ArrayList<>(), 10,new ArrayList<>()));
-            this.rooms.put("Patrik szobája",new Room("Patrik szobája",null, "szeretemakekszetésaszexet<3", new ArrayList<>(), 2,new ArrayList<>()));
-            this.rooms.put("GYVAKK Admin",new Room("GYVAKK Admin",null, "admin", new ArrayList<>(), 10,new ArrayList<>()));
+            createRoom("GYVAKK admin",null,"admin",10);
+            createRoom("Beszélgető",null,null,999);
+            createRoom("Patrik szobája",null,"kys",2);
             this.serverSocket = new ServerSocket(port);
             //this.serverSocket.bind(new InetSocketAddress(port));
             this.listener = new ConnectionListener(this);
@@ -188,13 +186,14 @@ public class Server {
                         else if (packetObject instanceof SendMessageToServerPacket packet) {
                             Room selectedRoom = this.rooms.get(packet.getMessage().getRoom().getUniqueId());
                             ServerReceiveMessageEvent event = new ServerReceiveMessageEvent(packet.getMessage());
-                            System.out.println("Received message: "+event.getMessage().getMessage());
+                            System.out.println("Got message: " + packet.getMessage().getMessage());
                             if(event.callEvent()) {
                                 Socket socketMember;
                                 for (Member member : selectedRoom.getMembers()) {
                                     if((socketMember = getSocketByMember(member)) == null) {
                                         continue;
                                     }
+
                                     sendPacket(socketMember, new SendMessageToClientPacket(event.getMessage()));
                                 }
 
@@ -252,8 +251,8 @@ public class Server {
                 try {
                     Thread.sleep(1000);
                     for (Map.Entry<Socket, PingPongMember> entry : server.heartbeatTable.entrySet()) {
-                        if(entry.getValue().getLastPing()+5500 <= System.currentTimeMillis()) {
-                            entry.getValue().setFailCount(entry.getValue().getFailCount()+1);
+                        if(entry.getValue().getLastPing() + 5500 <= System.currentTimeMillis()) {
+                            entry.getValue().setFailCount(entry.getValue().getFailCount() + 1);
                             if (entry.getValue().getFailCount() > 3) {
                                 // disconnect
                                 new ServerClientDisconnectEvent(server.sockets.get(entry.getKey()), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();

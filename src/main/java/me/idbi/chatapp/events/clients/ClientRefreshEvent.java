@@ -8,12 +8,13 @@ import me.idbi.chatapp.view.ViewType;
 import me.idbi.chatapp.view.viewmenus.RoomListView;
 
 import java.util.Map;
+import java.util.UUID;
 
 public class ClientRefreshEvent extends Event {
 
-    private final Map<String, Room> newRooms;
+    private final Map<UUID, Room> newRooms;
 
-    public ClientRefreshEvent(Map<String, Room> newRooms) {
+    public ClientRefreshEvent(Map<UUID, Room> newRooms) {
         this.newRooms = newRooms;
     }
 
