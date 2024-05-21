@@ -4,9 +4,12 @@ import lombok.Getter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.networking.Member;
 import me.idbi.chatapp.networking.Room;
+import me.idbi.chatapp.utils.Utils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 public class ClientMessage implements IMessage, Serializable {
@@ -35,6 +38,11 @@ public class ClientMessage implements IMessage, Serializable {
     @Override
     public boolean isSystem() {
         return false;
+    }
+
+    @Override
+    public List<String> getMessage(int width) {
+        return Utils.splitForWidth(this.getMessage(), width);
     }
 
     @Override

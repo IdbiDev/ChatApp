@@ -3,6 +3,7 @@ package me.idbi.chatapp;
 import lombok.Getter;
 import lombok.Setter;
 import me.idbi.chatapp.messages.IMessage;
+import me.idbi.chatapp.messages.SystemMessage;
 import me.idbi.chatapp.networking.Client;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.packets.client.DebugMessagePacket;
@@ -57,7 +58,7 @@ public class ClientData {
     public void addScrollState(List<IMessage> messages, int state) {
         this.scrollState += state;
         //Main.getClient().sendPacket(new DebugMessagePacket(messages.size() + " " + ((RoomChatView) ViewType.ROOM_CHAT.getView()).getScrollMessagesSplitted(messages).size()));
-        this.scrollState = Math.min(this.scrollState, ((RoomChatView) ViewType.ROOM_CHAT.getView()).getMessages(messages).size() / Main.getMessagePerScroll());
+        //this.scrollState = Math.min(this.scrollState, ((RoomChatView) ViewType.ROOM_CHAT.getView()).getScrollMessages(messages).size() / Main.getMessagePerScroll());
         this.refreshChatRoom = true;
     }
 
@@ -65,17 +66,32 @@ public class ClientData {
         if(this.viewManager.getCurrentView() instanceof RoomChatView view) {
             int width = Main.getClientData().getTerminalManager().getWidth();
             // ha az előző widthtel a state
-            List<String> previousMessages = ((RoomChatView) ViewType.ROOM_CHAT.getView())
-                    .getMessages(Main.getClientData().getCurrentRoom().getMessages(), previousWidth);
-            List<String> currentMessages = ((RoomChatView) ViewType.ROOM_CHAT.getView())
-                    .getMessages(Main.getClientData().getCurrentRoom().getMessages(), width);
-            Main.getClient().sendPacket(new DebugMessagePacket(previousMessages.size() + " " + currentMessages.size()));
-            int diff = Math.abs(previousMessages.size() - currentMessages.size()) / Main.getMessagePerScroll();
-            if(previousWidth < width) {
-                this.scrollState -= diff;
-            } else { // width < previousWidth
-                this.scrollState += diff;
+
+            List<IMessage> currentMessages = Main.getClientData().getCurrentRoom().getMessages()
+                    .stream()
+                    .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
+                    .toList();
+//
+            List<IMessage> previousIMessages = view.getScrollIMessages(currentMessages, previousWidth);
+            List<IMessage> currentIMessages = view.getScrollIMessages(currentMessages, width);
+
+            int lineChangeCount = 0;
+            int counter = 0;
+            for (IMessage previousIMessage : previousIMessages) {
+                if(previousIMessage.getMessage(previousWidth).size() != currentIMessages.get(counter).getMessage(width).size()) {
+                    int diff = (previousIMessage.getMessage(previousWidth).size() - currentIMessages.get(counter).getMessage(width).size()) / Main.getScrollState();
+                    if(diff < 0) {
+                        this.scrollState -= diff;
+                    } else {
+                        this.scrollState += diff;
+                    }
+                }
+                counter++;
             }
+
+
+           // Main.getClient().sendPacket(new DebugMessagePacket(previousMessages.size() + " " + currentMessages.size()));
+
             this.refreshChatRoom = true;
         }
     }

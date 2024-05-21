@@ -36,6 +36,8 @@ public class Server {
         this.sockets = new ConcurrentHashMap<>();
         this.rooms = new HashMap<>();
         this.heartbeatTable = new ConcurrentHashMap<>();
+        this.clientInputStreams = new ConcurrentHashMap<>();
+        this.clientOutputStreams = new ConcurrentHashMap<>();
         try {
             createRoom("GYVAKK admin",null,"admin",10);
             createRoom("Beszélgető",null,null,999);

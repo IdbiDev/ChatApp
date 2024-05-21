@@ -4,9 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import me.idbi.chatapp.networking.Member;
 import me.idbi.chatapp.networking.Room;
+import me.idbi.chatapp.utils.Utils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
@@ -57,6 +60,11 @@ public class SystemMessage implements IMessage, Serializable {
 
     public boolean isExpired() {
         return this.date.getTime() < this.expireTime;
+    }
+
+    @Override
+    public List<String> getMessage(int width) {
+        return Utils.splitForWidth(this.getMessage(), width);
     }
 
     public boolean isExpired(Date joinDate) {
