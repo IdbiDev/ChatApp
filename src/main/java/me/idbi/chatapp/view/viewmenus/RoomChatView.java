@@ -8,14 +8,13 @@ import me.idbi.chatapp.messages.IMessage;
 import me.idbi.chatapp.messages.SystemMessage;
 import me.idbi.chatapp.networking.Client;
 import me.idbi.chatapp.networking.Room;
+import me.idbi.chatapp.packets.client.DebugMessagePacket;
 import me.idbi.chatapp.packets.client.SendMessageToServerPacket;
 import me.idbi.chatapp.utils.TerminalManager;
 import me.idbi.chatapp.view.IView;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
+import java.util.*;
 import java.util.List;
 
 public class RoomChatView implements IView {
@@ -32,7 +31,7 @@ public class RoomChatView implements IView {
         new Thread(new Client.ClientTester()).start();
         while (true) {
             try {
-                Thread.sleep(1);
+                Thread.sleep(20);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -40,7 +39,7 @@ public class RoomChatView implements IView {
             //Main.getClientData().getTerminalManager().clear();
             int termHeight = Main.getClientData().getTerminalManager().getHeight();
 
-            List<IMessage> clientMessages = Main.getClientData().getCurrentRoom().getMessages()
+            List<IMessage> clientMessages = new ArrayList<IMessage>(Main.getClientData().getCurrentRoom().getMessages())
                     .stream()
                     .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
                     .toList();
@@ -49,20 +48,58 @@ public class RoomChatView implements IView {
             if(clientMessages.size() < termHeight) {
                 clientMessages.stream().map(IMessage::getMessage).forEach(System.out::println);
             } else {
-                List<String> currentMessages = getScrollMessages(clientMessages, Main.getClientData().getScrollState());
+                List<String> currentMessages = getScrollMessages(clientMessages);
                 currentMessages.forEach(System.out::println);
             }
+            System.out.println("DONE");
             Main.getClientData().setRefreshChatRoom(false);
         }
     }
 
-    public List<String> getScrollMessages(List<IMessage> messages, int state) {
+    public List<String> getScrollMessages(List<IMessage> messages) {
         int termHeight = Main.getClientData().getTerminalManager().getHeight();
-        List<String> scrollMessages = getMessages(messages);
+        int width = Main.getClientData().getTerminalManager().getWidth();
+        int state = Main.getClientData().getScrollState();
+
+        List<String> scrollMessages = new ArrayList<>();
+        messages.forEach(message -> scrollMessages.addAll(message.getMessage(width)));
+
         int idx1 = scrollMessages.size() - state * messagesPerScroll;
         int idx2 = scrollMessages.size() - state * messagesPerScroll - (termHeight - 1); // - term.height
 
         return scrollMessages.subList(Math.max(idx2, 0), Math.max(idx1, termHeight - 1));
+    }
+
+    public List<IMessage> getScrollIMessages(List<IMessage> messages, int width) {
+
+        int termHeight = Main.getClientData().getTerminalManager().getHeight();
+        int state = Main.getClientData().getScrollState();
+
+        int idx1 = messages.size() - state * messagesPerScroll;
+        int idx2 = messages.size() - state * messagesPerScroll - (termHeight - 1); // - term.height
+
+        List<IMessage> subbedIMessages = messages.subList(Math.max(idx2, 0), Math.max(idx1, termHeight - 1));
+
+        Map<Integer, List<String>> idk = new HashMap<>();
+        Map<Integer, IMessage> imessages = new HashMap<>();
+
+        subbedIMessages.forEach(message -> idk.put(idk.size(), message.getMessage(width)));
+        subbedIMessages.forEach(message -> imessages.put(imessages.size(), message));
+
+        int i1 = idk.size() - state * messagesPerScroll;
+        int i2 = idk.size() - state * messagesPerScroll - (termHeight - 1); // - term.height
+
+        List<IMessage> asdXDDD = new ArrayList<>();
+
+        for(int i = i2; i < i1; i++) {
+            asdXDDD.add(imessages.get(i));
+        }
+
+        return asdXDDD;
+        //List<String> buziGeci = new ArrayList<>();
+        //asdXDDD.forEach(message -> buziGeci.addAll(message.getMessage(width)));
+        //return buziGeci.subList(0, Math.min(termHeight - 1, buziGeci.size()));
+        //return messages.subList(Math.max(idx2, 0), Collections.max(Arrays.asList(idx1, termHeight - 1, messages.size())));
     }
 
     public List<String> getScrollMessagesSplitted(List<IMessage> messages) {
@@ -71,7 +108,7 @@ public class RoomChatView implements IView {
         int messageCount = messages.size();
         int counter = 0;
         while (asd.size() < messageCount) {
-            asd.addAll(getLines(messages.get(counter)));
+           // asd.addAll(getLines(messages.get(counter)));
             counter++;
         }
 
@@ -79,65 +116,4 @@ public class RoomChatView implements IView {
         return asd.subList(0, messageCount);
     }
 
-    public List<String> getMessages(List<IMessage> messages) {
-        List<String> asd = new ArrayList<>();
-
-        for (IMessage message : messages) {
-            asd.addAll(getLines(message));
-        }
-
-        return asd;
-    }
-
-    public List<String> getMessages(List<IMessage> messages, int width) {
-        List<String> asd = new ArrayList<>();
-
-        for (IMessage message : messages) {
-            asd.addAll(getLines(message, width));
-        }
-
-        return asd;
-    }
-
-    private List<String> getLines(IMessage message, int width) {
-        List<String> lines = new ArrayList<>();
-        try {
-            StringBuilder buffer = new StringBuilder();
-            for (String s : message.getMessage().split(" ")) {
-                String currentWord = s + " ";
-                if(currentWord.length() > width) {
-                    String tempText = currentWord;
-                    int mentalBreakdownProtection = 0;
-                    while(tempText.length() > width - buffer.length() && mentalBreakdownProtection < 256) { // ha maga a szó hosszabb mint a hátralévő
-                        buffer.append(tempText.substring(0, width - buffer.length())); // ha már van bufferben, akkor is csak a widthig töltsük
-
-                        lines.add(buffer.toString().strip()); // buffer megtelt, buffer mentése
-                        buffer.setLength(0); // buffer törlése
-
-                        tempText = tempText.substring(width); // már levágott részt, kövi loopra kivágjuk
-                        mentalBreakdownProtection++;
-                    }
-
-                    buffer.append(tempText);
-                    continue;
-                } else if(currentWord.length() + buffer.length() <= width) {
-                    buffer.append(currentWord);
-                    continue;
-                }
-
-                lines.add(buffer.toString().strip());
-                buffer.setLength(0);
-                buffer.append(currentWord);
-            }
-            lines.add(buffer.toString().strip());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return lines;
-    }
-
-    private List<String> getLines(IMessage message) {
-        int width = Main.getClientData().getTerminalManager().getWidth();
-        return getLines(message, width);
-    }
 }

@@ -5,6 +5,7 @@ import me.idbi.chatapp.eventmanagers.EventManager;
 import me.idbi.chatapp.eventmanagers.interfaces.Listener;
 import me.idbi.chatapp.networking.Client;
 import me.idbi.chatapp.networking.Server;
+import me.idbi.chatapp.packets.client.DebugMessagePacket;
 import me.idbi.chatapp.view.ViewType;
 import org.apache.commons.cli.*;
 import org.jline.terminal.Terminal;
@@ -31,7 +32,9 @@ public class Main implements Listener {
     @Getter private static Client client;
     @Getter private static int scrollState = 0;
 
-
+    public static void debug(String message) {
+        Main.getClient().sendPacket(new DebugMessagePacket(message));
+    }
     // Server //
     public static void main(String[] args) throws IOException, InterruptedException {
 

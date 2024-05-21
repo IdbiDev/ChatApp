@@ -29,6 +29,8 @@ public class Client {
     @Getter private String host;
     @Getter private int port;
     @Getter private String name;
+    private ObjectInputStream in;
+    private static ObjectOutputStream out;
 
 
     public Client(String host,int port) {
@@ -43,6 +45,7 @@ public class Client {
             canRun = true;
             this.listener = new ClientListener(this);
             Thread t = new Thread(this.listener);
+
             t.start();
             ClientPacket packet = new HandshakePacket(this.name);
             sendPacket(packet);
@@ -54,7 +57,6 @@ public class Client {
 
     public void sendPacket(ClientPacket packet) {
         try {
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             out.writeObject(packet);
             out.flush();
         } catch (IOException e) {
@@ -78,16 +80,22 @@ public class Client {
     public static class ClientListener implements Runnable {
         private final Client client;
         private final Socket socket;
-        ClientListener(Client client) {
+        ClientListener(Client client)  {
             this.client = client;
             this.socket = client.socket;
+            try {
+                out = new ObjectOutputStream(socket.getOutputStream());
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         @Override
         public void run() {
             while (client.canRun) {
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(1);
                 } catch (InterruptedException e) {
                     System.out.println(e.getMessage()+"?");
                 }
@@ -96,9 +104,12 @@ public class Client {
                     break;
                 }
                 try {
+
                     if (socket.getInputStream().available() > 0) {
-                        ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-                        Object packetObject = in.readObject();
+                        if(client.in == null) {
+                            client.in = new ObjectInputStream(socket.getInputStream());
+                        }
+                        Object packetObject = client.in.readObject();
 
                         if (packetObject instanceof LoginPacket packet) {
                             new ClientLoginEvent().callEvent();

@@ -26,6 +26,8 @@ public class Server {
     private HeartBeatTimer heartbeatListener;
     private final Map<Socket, Member> sockets;
     private final Map<Socket, PingPongMember> heartbeatTable;
+    private final Map<Socket, ObjectInputStream> clientInputStreams;
+    private final Map<Socket, ObjectOutputStream> clientOutputStreams;
 
 
     private final Map<UUID, Room> rooms;
@@ -39,6 +41,7 @@ public class Server {
             createRoom("Beszélgető",null,null,999);
             createRoom("Patrik szobája",null,"kys",2);
             this.serverSocket = new ServerSocket(port);
+
             //this.serverSocket.bind(new InetSocketAddress(port));
             this.listener = new ConnectionListener(this);
             Thread t1 = new Thread(this.listener);
@@ -67,7 +70,7 @@ public class Server {
 
     private void sendPacket(Socket receiver, ServerPacket packet) {
         try {
-            ObjectOutputStream out = new ObjectOutputStream(receiver.getOutputStream());
+            ObjectOutputStream out = clientOutputStreams.get(receiver);
             out.writeObject(packet);
             out.flush();
         } catch (IOException e) {
@@ -97,7 +100,7 @@ public class Server {
     private void serverLoop() {
         while (true) {
             try {
-                Thread.sleep(50);
+                Thread.sleep(1);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -117,8 +120,11 @@ public class Server {
                 }
                 try {
                     if (socket.getInputStream().available() > 0) {
-                        ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-                        Object packetObject = in.readObject();
+                        if(!clientInputStreams.containsKey(socket)) {
+                            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+                            clientInputStreams.put(socket, in);
+                        }
+                        Object packetObject = clientInputStreams.get(socket).readObject();
 
                         if (packetObject instanceof HandshakePacket packet) {
                             System.out.println("Loginolt: " + packet.getId());
@@ -227,11 +233,15 @@ public class Server {
             while (true) {
                 try {
                     Socket socket = server.serverSocket.accept();
+                    ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                    server.clientOutputStreams.put(socket,out);
                     server.sockets.put(socket, new Member("",new ArrayList<>(), new HashMap<>()));
                     System.out.println("Accepted connection from222222 " + socket.getRemoteSocketAddress());
                     server.heartbeatTable.put(socket,new PingPongMember(0,0));
+
                 } catch (IOException e) {
                     System.out.println("Accept failed");
+                    e.printStackTrace();
                 }
             }
         }
@@ -253,7 +263,7 @@ public class Server {
                     for (Map.Entry<Socket, PingPongMember> entry : server.heartbeatTable.entrySet()) {
                         if(entry.getValue().getLastPing() + 5500 <= System.currentTimeMillis()) {
                             entry.getValue().setFailCount(entry.getValue().getFailCount() + 1);
-                            if (entry.getValue().getFailCount() > 3) {
+                            if (entry.getValue().getFailCount() > 999999999) {
                                 // disconnect
                                 new ServerClientDisconnectEvent(server.sockets.get(entry.getKey()), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
                                 System.out.println(server.sockets.get(entry.getKey()).getName() + " disconnected from timeout");

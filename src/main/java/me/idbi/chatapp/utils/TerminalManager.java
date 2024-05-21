@@ -10,6 +10,7 @@ import me.idbi.chatapp.messages.SystemMessage;
 import me.idbi.chatapp.networking.Client;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.networking.Server;
+import me.idbi.chatapp.packets.client.DebugMessagePacket;
 import me.idbi.chatapp.packets.client.RoomJoinPacket;
 import me.idbi.chatapp.view.IView;
 import me.idbi.chatapp.view.ViewType;
@@ -284,11 +285,14 @@ public class TerminalManager {
             int lastHeight = terminal.getHeight();
             while (true) {
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(1);
                 } catch (InterruptedException e) {
+                    Main.getClient().sendPacket(new DebugMessagePacket(e.getMessage()));
                     break;
                 }
+                //Main.debug("View terminal size");
                 if (lastWidth != terminal.getWidth() || lastHeight != terminal.getHeight()) {
+                    Main.debug("Terminal size changed");
                     new ClientTerminalResizeEvent(lastWidth, lastHeight, terminal.getWidth(),terminal.getHeight()).callEvent();
                     lastWidth = terminal.getWidth();
                     lastHeight = terminal.getHeight();
