@@ -292,7 +292,7 @@ public class TerminalManager {
                 }
                 //Main.debug("View terminal size");
                 if (lastWidth != terminal.getWidth() || lastHeight != terminal.getHeight()) {
-                    Main.debug("Terminal size changed");
+                    //Main.debug("Terminal size changed");
                     new ClientTerminalResizeEvent(lastWidth, lastHeight, terminal.getWidth(),terminal.getHeight()).callEvent();
                     lastWidth = terminal.getWidth();
                     lastHeight = terminal.getHeight();
@@ -413,10 +413,11 @@ public class TerminalManager {
                             break;
                         default:
                             buffer += (char) key;
+                            Main.debug((char) key);
                             break;
                     }
                 } catch (IOException e) {
-
+                    Main.debug(e.getMessage());
                     //throw new RuntimeException(e);
                 }
             }

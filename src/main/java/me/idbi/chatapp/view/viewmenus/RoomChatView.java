@@ -51,7 +51,7 @@ public class RoomChatView implements IView {
                 List<String> currentMessages = getScrollMessages(clientMessages);
                 currentMessages.forEach(System.out::println);
             }
-            System.out.println("DONE");
+            System.out.println(Main.getClientData().getTerminalManager().getKeyboardListener().getBuffer());
             Main.getClientData().setRefreshChatRoom(false);
         }
     }
@@ -60,14 +60,36 @@ public class RoomChatView implements IView {
         int termHeight = Main.getClientData().getTerminalManager().getHeight();
         int width = Main.getClientData().getTerminalManager().getWidth();
         int state = Main.getClientData().getScrollState();
+        int previousWidth = Main.getClientData().getPreviousWidth();
 
+        int idx1 = messages.size() - state * messagesPerScroll;
+        int idx2 = messages.size() - state * messagesPerScroll - (Math.max(termHeight - 1, 1)); // - term.height
+
+        // mentalBreakdownProtection
+        idx1 = Math.min(Math.max(idx1, termHeight - 1), messages.size());
+        idx2 = Math.max(idx2, 0);
+        Main.debug("innentől: " + idx2 + " idáig: " + idx1);
+
+        messages = messages.subList(idx2, idx1);
+
+        int changedLines = 0;
         List<String> scrollMessages = new ArrayList<>();
-        messages.forEach(message -> scrollMessages.addAll(message.getMessage(width)));
+        for (IMessage message : messages) {
+            List<String> splitted = message.getMessage(width);
+            List<String> previousSplitted = message.getMessage(previousWidth);
 
-        int idx1 = scrollMessages.size() - state * messagesPerScroll;
-        int idx2 = scrollMessages.size() - state * messagesPerScroll - (termHeight - 1); // - term.height
+            changedLines += splitted.size() - previousSplitted.size();
 
-        return scrollMessages.subList(Math.max(idx2, 0), Math.max(idx1, termHeight - 1));
+            scrollMessages.addAll(splitted);
+        }
+
+        Main.getClientData().addScrollState(Math.round((float) changedLines / Main.getMessagePerScroll()));
+        Main.debug(changedLines + " " + (Math.round((float) changedLines / Main.getMessagePerScroll())) + " " + Main.getClientData().getScrollState());
+
+        idx1 = scrollMessages.size() - state * messagesPerScroll;
+        idx2 = scrollMessages.size() - state * messagesPerScroll - (termHeight - 1); // - term.height
+
+        return scrollMessages.subList(Math.max(idx2, 0), Math.min(Math.max(idx1, termHeight - 1), scrollMessages.size()));
     }
 
     public List<IMessage> getScrollIMessages(List<IMessage> messages, int width) {

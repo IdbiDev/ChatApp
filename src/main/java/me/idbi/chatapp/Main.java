@@ -12,7 +12,8 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.NonBlockingReader;
 
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 
 /*
@@ -35,6 +36,11 @@ public class Main implements Listener {
     public static void debug(String message) {
         Main.getClient().sendPacket(new DebugMessagePacket(message));
     }
+    public static void debugFile(String message) throws IOException {
+        FileOutputStream debugFile = new FileOutputStream ("debug.txt");
+        debugFile.write((message+"\r\n").getBytes(StandardCharsets.UTF_8));
+
+    }
     // Server //
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -45,7 +51,8 @@ public class Main implements Listener {
 //        while (c) {
 //            System.out.println(nonBlockingReader.read());
 //        }
-
+        debugFile("cCica");
+        debugFile("cCica2");
         Options options = new Options();
         Option serverOption = new Option("s", "server", false, "Run as server");
         serverOption.setRequired(false);
@@ -76,7 +83,7 @@ public class Main implements Listener {
             System.exit(1);
         }
 
-        String host = cmd.getOptionValue("h", "87.97.115.64");
+        String host = cmd.getOptionValue("h", "localhost");
 
         int port;
         if (cmd.hasOption("p")) {

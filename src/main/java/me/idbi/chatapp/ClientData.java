@@ -4,14 +4,11 @@ import lombok.Getter;
 import lombok.Setter;
 import me.idbi.chatapp.messages.IMessage;
 import me.idbi.chatapp.messages.SystemMessage;
-import me.idbi.chatapp.networking.Client;
 import me.idbi.chatapp.networking.Room;
-import me.idbi.chatapp.packets.client.DebugMessagePacket;
 import me.idbi.chatapp.table.TableManager;
 import me.idbi.chatapp.utils.InputManager;
 import me.idbi.chatapp.utils.TerminalManager;
 import me.idbi.chatapp.view.ViewManager;
-import me.idbi.chatapp.view.ViewType;
 import me.idbi.chatapp.view.viewmenus.RoomChatView;
 
 import java.io.IOException;
@@ -21,6 +18,7 @@ import java.util.*;
 public class ClientData {
 
     private int scrollState;
+    @Setter private int previousWidth;
     private Room currentRoom;
 
     private final Map<UUID, String> passwords;
@@ -43,6 +41,7 @@ public class ClientData {
         this.terminalManager = new TerminalManager();
         this.tableManager = new TableManager();
         this.viewManager = new ViewManager();
+        this.previousWidth = this.terminalManager.getWidth();
     }
 
     public void setScrollState(int state) {
@@ -52,6 +51,8 @@ public class ClientData {
 
     public void addScrollState(int state) {
         this.scrollState += state;
+        if(this.scrollState < 0)
+            this.scrollState = 0;
         this.refreshChatRoom = true;
     }
 
@@ -97,7 +98,9 @@ public class ClientData {
     }
 
     public void removeScrollState(int state) {
-        this.scrollState = Math.max(0, this.scrollState - state);
+        this.scrollState -= state;
+        if(this.scrollState < 0)
+            this.scrollState = 0;
         this.refreshChatRoom = true;
     }
 
