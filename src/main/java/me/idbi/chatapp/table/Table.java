@@ -98,7 +98,9 @@ public class Table {
 
 
     public Row nextUp() {
+        if(this.selectedColumn == null) return null;
         Row selectedRow = this.getSelectedRow();
+        if(selectedRow == null) return null;
         int selectedIndex = this.getIndex(selectedRow);
         for (int i = this.selectedColumn.getRows().size() - 1; i >= 0; i--) {
             Row row = this.selectedColumn.getRows().get(i);
@@ -116,7 +118,9 @@ public class Table {
     }
 
     public Row nextDown() {
+        if(this.selectedColumn == null) return null;
         Row selectedRow = this.getSelectedRow();
+        if(selectedRow == null) return null;
         int selectedIndex = this.getIndex(selectedRow);
         for (int i = 0; i < this.selectedColumn.getRows().size(); i++) {
             Row row = this.selectedColumn.getRows().get(i);
@@ -138,6 +142,7 @@ public class Table {
     }
 
     public Row getSelectedRow() {
+        if(this.selectedColumn == null) return null;
         return this.selectedColumn.getRows()
                 .stream()
                 .filter(Row::isSelected)

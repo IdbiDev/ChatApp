@@ -16,10 +16,6 @@ import java.util.Scanner;
 public class RoomJoinView implements IView {
     @Setter private Room room;
 
-    public RoomJoinView() {
-        this.room = null;
-    }
-
     @Override
     public boolean isCursor() {
         return true;
@@ -47,7 +43,7 @@ public class RoomJoinView implements IView {
             Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
             return;
         }
-        Main.getClient().sendPacket(new RoomJoinPacket(room.getUniqueId(), pw));
+        Main.getClient().sendPacket(new RoomJoinPacket(this.room.getUniqueId(), pw));
     }
 
     @Override

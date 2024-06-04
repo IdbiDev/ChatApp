@@ -9,10 +9,6 @@ import java.util.concurrent.TimeUnit;
 
 public class LoginView implements IView {
 
-    public LoginView() {
-
-    }
-
     @Override
     public boolean isCursor() {
         return false;

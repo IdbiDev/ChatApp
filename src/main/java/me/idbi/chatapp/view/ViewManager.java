@@ -2,16 +2,81 @@ package me.idbi.chatapp.view;
 
 import lombok.Getter;
 import me.idbi.chatapp.Main;
+import me.idbi.chatapp.utils.TerminalManager;
 
 @Getter
 public class ViewManager {
 
-    private IView currentView;
-    //private Thread currentThread;
+    private IView view;
+    private Thread thread;
+    private boolean refresh;
 
     public ViewManager() {
         this.view = null;
         this.thread = null;
+    }
+
+    public ViewManager(IView view) {
+        setView(view);
+    }
+
+    public void setView(IView view) {
+        this.view = view;
+
+        if(view.isCursor()) Main.getClientData().getTerminalManager().showCursor();
+        else Main.getClientData().getTerminalManager().hideCursor();
+
+        if (this.thread != null && this.thread.isAlive()) {
+            this.thread.interrupt();
+            this.thread = null;
+        }
+
+        if (view.hasThread()) {
+            this.thread = new Thread(this::startUpdater);
+            return;
+        }
+
+        startUpdater();
+    }
+
+    public void setView(ViewType type) {
+        setView(type.getView());
+    }
+
+    public void startUpdater() {
+        TerminalManager manager = Main.getClientData().getTerminalManager();
+        manager.setCanWrite(this.view.hasInput());
+        if(this.view.isCursor()) {
+            manager.showCursor();
+        } else {
+            manager.hideCursor();
+        }
+
+        this.view.start();
+        while(this.view != null) {
+            if(this.view.getUpdateInterval() == -1) break;
+            this.view.update();
+            try {
+                Thread.sleep(this.view.getUpdateInterval());
+            } catch (InterruptedException ignored) {
+
+            }
+        }
+    }
+
+    public void refresh() {
+        Main.getClientData().getTerminalManager().clear();
+        if(this.view != null) {
+            this.view.update();
+        }
+    }
+
+    public void clearView() {
+        this.view = null;
+        if(this.thread != null && this.thread.isAlive()) {
+            this.thread.interrupt();
+            this.thread = null;
+        }
     }
 
 //    public void changeView(ViewType view) {

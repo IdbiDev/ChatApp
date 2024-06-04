@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.eventmanagers.interfaces.Event;
-import me.idbi.chatapp.packets.client.DebugMessagePacket;
+import me.idbi.chatapp.view.ViewType;
 import me.idbi.chatapp.view.viewmenus.GlobalBanView;
 import me.idbi.chatapp.view.viewmenus.RoomChatView;
 import me.idbi.chatapp.view.viewmenus.RoomListView;
@@ -20,12 +20,12 @@ public class ClientTerminalResizeEvent extends Event {
     @Override
     public boolean callEvent() {
         Main.getEventManager().callEvent(this);
-        if(Main.getClientData().getViewManager().getCurrentView() instanceof GlobalBanView
-                || Main.getClientData().getViewManager().getCurrentView() instanceof RoomListView
-        ) {
+        if(Main.getClientData().getViewManager().getView() instanceof RoomListView) {
             Main.getClientData().getViewManager().refresh();
         }
-        if (Main.getClientData().getViewManager().getCurrentView() instanceof RoomChatView) {
+        if (Main.getClientData().getViewManager().getView() instanceof RoomChatView) {
+            Main.getClientData().setPreviousWidth(oldWidth);
+
             Main.getClientData().setRefreshChatRoom(true);
 
             //Main.getClientData().refreshState(newWidth);

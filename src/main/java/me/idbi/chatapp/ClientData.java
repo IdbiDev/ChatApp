@@ -9,6 +9,7 @@ import me.idbi.chatapp.table.TableManager;
 import me.idbi.chatapp.utils.InputManager;
 import me.idbi.chatapp.utils.TerminalManager;
 import me.idbi.chatapp.view.ViewManager;
+import me.idbi.chatapp.view.ViewType;
 import me.idbi.chatapp.view.viewmenus.RoomChatView;
 
 import java.io.IOException;
@@ -59,12 +60,12 @@ public class ClientData {
     public void addScrollState(List<IMessage> messages, int state) {
         this.scrollState += state;
         //Main.getClient().sendPacket(new DebugMessagePacket(messages.size() + " " + ((RoomChatView) ViewType.ROOM_CHAT.getView()).getScrollMessagesSplitted(messages).size()));
-        //this.scrollState = Math.min(this.scrollState, ((RoomChatView) ViewType.ROOM_CHAT.getView()).getScrollMessages(messages).size() / Main.getMessagePerScroll());
-        this.refreshChatRoom = true;
+        this.scrollState = Math.min(this.scrollState, ((RoomChatView) ViewType.ROOM_CHAT.getView()).getScrollMessages(messages).size() / Main.getMessagePerScroll());
+        //this.refreshChatRoom = true;
     }
 
     public void refreshState(int previousWidth) {
-        if(this.viewManager.getCurrentView() instanceof RoomChatView view) {
+        if(this.viewManager.getView() instanceof RoomChatView view) {
             int width = Main.getClientData().getTerminalManager().getWidth();
             // ha az előző widthtel a state
 

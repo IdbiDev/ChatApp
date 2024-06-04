@@ -7,9 +7,7 @@ import me.idbi.chatapp.Main;
 import me.idbi.chatapp.events.clients.ClientTerminalResizeEvent;
 import me.idbi.chatapp.messages.IMessage;
 import me.idbi.chatapp.messages.SystemMessage;
-import me.idbi.chatapp.networking.Client;
 import me.idbi.chatapp.networking.Room;
-import me.idbi.chatapp.networking.Server;
 import me.idbi.chatapp.packets.client.DebugMessagePacket;
 import me.idbi.chatapp.packets.client.RoomJoinPacket;
 import me.idbi.chatapp.view.IView;
@@ -17,18 +15,12 @@ import me.idbi.chatapp.view.ViewType;
 import me.idbi.chatapp.view.viewmenus.RoomChatView;
 import me.idbi.chatapp.view.viewmenus.RoomJoinView;
 import me.idbi.chatapp.view.viewmenus.RoomListView;
-import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
-import org.jline.reader.impl.DefaultParser;
-import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.NonBlockingReader;
 
 import java.io.IOException;
-import java.nio.IntBuffer;
 import java.util.List;
-import java.util.UUID;
 
 public class TerminalManager {
     @Getter
@@ -326,17 +318,17 @@ public class TerminalManager {
                             switch (nonBlockingReader.read()) {
                                 case 65:
                                     //Fel nyíl
-                                    if (Main.getClientData().getViewManager().getCurrentView() instanceof IView.Tableable)
+                                    if (Main.getClientData().getViewManager().getView() instanceof IView.Tableable)
                                         Main.getClientData().getTableManager().nextUp();
-                                    else if (Main.getClientData().getViewManager().getCurrentView() instanceof RoomChatView) {
+                                    else if (Main.getClientData().getViewManager().getView() instanceof RoomChatView) {
 
                                     }
                                     break;
                                 case 66:
                                     //Le nyíl
-                                    if (Main.getClientData().getViewManager().getCurrentView() instanceof IView.Tableable)
+                                    if (Main.getClientData().getViewManager().getView() instanceof IView.Tableable)
                                         Main.getClientData().getTableManager().nextDown();
-                                    else if (Main.getClientData().getViewManager().getCurrentView() instanceof RoomChatView) {
+                                    else if (Main.getClientData().getViewManager().getView() instanceof RoomChatView) {
 
                                     }
                                     break;
@@ -353,7 +345,7 @@ public class TerminalManager {
                             switch (nonBlockingReader.read()) { // 54 - 53
                                 case 54:
                                     if (nonBlockingReader.read() == 126) { // PAGE DOWN
-                                        if(Main.getClientData().getViewManager().getCurrentView() instanceof RoomChatView) {
+                                        if(Main.getClientData().getViewManager().getView() instanceof RoomChatView) {
                                             Main.getClientData().removeScrollState(RoomChatView.getMessagesPerScroll() * 3);
                                         }
 
@@ -362,7 +354,7 @@ public class TerminalManager {
                                     break;
                                 case 53:
                                     if (nonBlockingReader.read() == 126) { // PAGE UP
-                                        if(Main.getClientData().getViewManager().getCurrentView() instanceof RoomChatView view) {
+                                        if(Main.getClientData().getViewManager().getView() instanceof RoomChatView view) {
                                             List<IMessage> clientMessages = Main.getClientData().getCurrentRoom().getMessages()
                                                     .stream()
                                                     .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
@@ -377,8 +369,11 @@ public class TerminalManager {
                     }
                     switch (key) {
                         case 13: // Enter
-                            if (Main.getClientData().getTableManager().getCurrentTable() != null && Main.getClientData().getViewManager().getCurrentView() != null) {
-                                if (Main.getClientData().getViewManager().getCurrentView() instanceof RoomListView) {
+                            if (Main.getClientData().getTableManager().getCurrentTable() != null && Main.getClientData().getViewManager().getView() != null) {
+                                if (Main.getClientData().getViewManager().getView() instanceof RoomListView) {
+                                    if(Main.getClientData().getTableManager().getCurrentTable().getSelectedRow() == null) {
+                                        break;
+                                    }
                                     String selectedRoomName = Main.getClientData().getTableManager().getCurrentTable().getSelectedRow().getLine();
                                     Room selectedRoom = Main.getClientData().getRooms()
                                             .values()
@@ -391,14 +386,14 @@ public class TerminalManager {
                                         Main.getClient().sendPacket(new RoomJoinPacket(selectedRoom.getUniqueId(), selectedRoom.getPassword()));
                                     } else {
                                         ((RoomJoinView) ViewType.ROOM_JOIN.getView()).setRoom(selectedRoom);
-                                        Main.getClientData().getViewManager().changeView(ViewType.ROOM_JOIN);
+                                        Main.getClientData().getViewManager().setView(ViewType.ROOM_JOIN);
                                     }
                                 }
                             }
                             buffer = "";
                             break;
                         case 27: // escap
-                            if (Main.getClientData().getViewManager().getCurrentView() instanceof RoomJoinView) {
+                            if (Main.getClientData().getViewManager().getView() instanceof RoomJoinView) {
                                 buffer = "";
                                 this.terminal.canWrite = false;
                                 Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
