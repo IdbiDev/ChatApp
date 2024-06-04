@@ -47,7 +47,7 @@ public class ClientRoomJoinEvent extends Event implements Cancellable {
             return false;
         } else {
             if(result != RoomJoinResult.SUCCESS) {
-                Main.getClientData().getViewManager().changeView(ViewType.ROOM_JOIN);
+                Main.getClientData().getViewManager().setView(ViewType.ROOM_JOIN);
                 //Main.getClientData().getViewManager().changeView(ViewType,
                 // 25448787.ROOM_LIST);
             } else {
@@ -55,7 +55,7 @@ public class ClientRoomJoinEvent extends Event implements Cancellable {
                 Main.getClientData().setCurrentRoom(room, joinAt);
 
 
-                Main.getClientData().getViewManager().threadedView(ViewType.ROOM_CHAT);
+                Main.getClientData().getViewManager().setView(ViewType.ROOM_CHAT);
 
 //                System.out.println("called room chat ");
 //                new Thread(new Client.ClientTester()).start();

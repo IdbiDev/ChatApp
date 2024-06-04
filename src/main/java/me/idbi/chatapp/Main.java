@@ -109,7 +109,7 @@ public class Main implements Listener {
                 //Client
                 client = new Client(host, port);
 
-                clientData.getViewManager().changeView(ViewType.LOGIN);
+                clientData.getViewManager().setView(ViewType.LOGIN);
             } else if (cmd.hasOption("s")) {
                 Server server = new Server(port);
 

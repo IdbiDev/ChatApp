@@ -15,6 +15,7 @@ import me.idbi.chatapp.utils.RoomJoinResult;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.channels.ScatteringByteChannel;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -134,6 +135,7 @@ public class Server {
                             sendPacket(socket, new LoginPacket());
 
                         } else if (packetObject instanceof RequestRefreshPacket) {
+                            System.out.println("CAT");
                             sendPacket(socket, new ReceiveRefreshPacket(this.rooms));
 
                         } else if(packetObject instanceof RoomJoinPacket packet) {

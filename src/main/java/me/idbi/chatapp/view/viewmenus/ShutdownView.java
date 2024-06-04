@@ -5,6 +5,7 @@ import me.idbi.chatapp.utils.TerminalManager;
 import me.idbi.chatapp.view.IView;
 
 public class ShutdownView implements IView {
+    private int counter;
 
     @Override
     public boolean isCursor() {
@@ -12,23 +13,40 @@ public class ShutdownView implements IView {
     }
 
     @Override
-    public void show() {
+    public boolean hasThread() {
+        return false;
+    }
+
+    @Override
+    public boolean hasInput() {
+        return false;
+    }
+
+    @Override
+    public long getUpdateInterval() {
+        return 1000;
+    }
+
+    @Override
+    public void start() {
         Main.getClientData().getTerminalManager().clear();
         Main.getClient().setCanRun(false);
         System.out.println(TerminalManager.Color.RED + "A szerver váratlanul leállt. Kérlek várj vagy keress fel egy adminisztrátort." + TerminalManager.Color.RESET);
-        int counter = 0;
-        while (!Main.getClient().connect()) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            if(counter >= 4) {
-                System.out.printf("\rCsatlakozás%s", "   ");
-                counter = 0;
-            }
-            System.out.printf("\rCsatlakozás%s", ".".repeat(counter));
-            counter++;
+        this.counter = 0;
+    }
+
+    @Override
+    public void update() {
+        Main.getClient().connect();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ignored) {
         }
+        if(this.counter >= 4) {
+            System.out.printf("\rCsatlakozás%s", "   ");
+            this.counter = 0;
+        }
+        System.out.printf("\rCsatlakozás%s", ".".repeat(this.counter));
+        this.counter++;
     }
 }

@@ -19,7 +19,22 @@ public class LoginView implements IView {
     }
 
     @Override
-    public void show() {
+    public boolean hasThread() {
+        return false;
+    }
+
+    @Override
+    public boolean hasInput() {
+        return false;
+    }
+
+    @Override
+    public long getUpdateInterval() {
+        return -1;
+    }
+
+    @Override
+    public void start() {
         Main.getClientData().getTerminalManager().center("Chatapp+", TerminalManager.Style.BOLD,TerminalManager.Color.CYAN);
         System.out.println();
         Main.getClientData().getTerminalManager().center("Csatlakozás " + Main.getClient().getName() + " névvel.", TerminalManager.Style.BOLD);
@@ -30,11 +45,12 @@ public class LoginView implements IView {
                 Thread.sleep(3000);
                 Main.getClientData().getTerminalManager().clear();
                 System.exit(-1);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            } catch (InterruptedException ignored) {}
         }
+    }
 
+    @Override
+    public void update() {
 
     }
 }

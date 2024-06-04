@@ -61,7 +61,7 @@ public class Client {
             out.flush();
         } catch (IOException e) {
             System.out.println("Error: " + e.getMessage());
-            Main.getClientData().getViewManager().changeView(ViewType.SERVER_SHUTDOWN);
+            Main.getClientData().getViewManager().setView(ViewType.SERVER_SHUTDOWN);
         }
 
     }
@@ -126,7 +126,7 @@ public class Client {
                             Main.getClientData().getCurrentRoom().sendMessage(event.getMessage());
                             //System.out.println(event.getMessage().getMessage());
                         } else if(packetObject instanceof ShutdownPacket) {
-                            Main.getClientData().getViewManager().changeView(ViewType.SERVER_SHUTDOWN);
+                            Main.getClientData().getViewManager().setView(ViewType.SERVER_SHUTDOWN);
                         }
                     }
                 } catch (IOException | ClassNotFoundException e) {

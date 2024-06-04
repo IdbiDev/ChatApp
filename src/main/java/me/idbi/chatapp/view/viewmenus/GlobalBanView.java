@@ -11,7 +11,22 @@ public class GlobalBanView implements IView {
     }
 
     @Override
-    public void show() {
+    public boolean hasThread() {
+        return false;
+    }
+
+    @Override
+    public boolean hasInput() {
+        return false;
+    }
+
+    @Override
+    public long getUpdateInterval() {
+        return -1;
+    }
+
+    @Override
+    public void start() {
         Main.getClientData().getTerminalManager().setBackgroundColor(TerminalManager.Color.BLUE_BACKGROUND);
         System.out.println("Chatapp+\n\n\n\n\n");
 
@@ -26,7 +41,10 @@ public class GlobalBanView implements IView {
                            ████
                               ████
                 """
-                );
+        );
         System.out.println("Ki lettél tiltva!");
     }
+
+    @Override
+    public void update() {}
 }

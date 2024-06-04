@@ -27,7 +27,7 @@ public class ClientTerminalResizeEvent extends Event {
         }
         if (Main.getClientData().getViewManager().getCurrentView() instanceof RoomChatView) {
             Main.getClientData().setRefreshChatRoom(true);
-            Main.getClientData().setPreviousWidth(oldWidth);
+
             //Main.getClientData().refreshState(newWidth);
            // Main.getClient().sendPacket(new DebugMessagePacket("asd"));
         }

@@ -20,10 +20,10 @@ public class ClientLoginEvent extends Event {
             Thread.sleep(1000);
             Main.getClientData().getTerminalManager().clear();
             Main.getClient().sendPacket(new RequestRefreshPacket());
-            Main.getClientData().getViewManager().changeView(ViewType.ROOM_LIST);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+
+            Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
+
+        } catch (InterruptedException ignored) {}
 
         return true;
     }

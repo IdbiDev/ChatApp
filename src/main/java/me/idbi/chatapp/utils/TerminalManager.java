@@ -317,9 +317,6 @@ public class TerminalManager {
         public void run() {
             NonBlockingReader nonBlockingReader = terminal.getTerminal().reader();
             while (true) {
-                if (!terminal.isCanWrite()) {
-                    continue;
-                }
                 try {
                     int key = nonBlockingReader.read();
 
@@ -404,16 +401,22 @@ public class TerminalManager {
                             if (Main.getClientData().getViewManager().getCurrentView() instanceof RoomJoinView) {
                                 buffer = "";
                                 this.terminal.canWrite = false;
-                                Main.getClientData().getViewManager().changeView(ViewType.ROOM_LIST);
+                                Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
                             }
                             break;
                         case 8: // Backspace
+                            if (!terminal.isCanWrite()) {
+                                continue;
+                            }
                             if (buffer.isEmpty()) continue;
                             buffer = buffer.substring(0, buffer.length() - 1);
                             break;
                         default:
+                            if (!terminal.isCanWrite()) {
+                                continue;
+                            }
                             buffer += (char) key;
-                            Main.debug((char) key);
+                            //Main.debug(String.valueOf((char) key));
                             break;
                     }
                 } catch (IOException e) {

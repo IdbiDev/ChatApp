@@ -26,9 +26,33 @@ public class RoomListView implements IView, IView.Tableable {
     }
 
     @Override
-    public void show() {
+    public boolean hasThread() {
+        return false;
+    }
+
+    @Override
+    public boolean hasInput() {
+        return false;
+    }
+
+    @Override
+    public long getUpdateInterval() {
+        return -1;
+    }
+
+    @Override
+    public void start() {
+        Table table = new Table();
+        Column column = new Column();
+        column.addRow(new Row("Töltés...", false, false, Row.Aligment.CENTER));
+        table.addColumn(column);
+        Main.getClientData().getTableManager().setTable(table);
+    }
+
+    @Override
+    public void update() {
         List<Room> rooms = Main.getClientData().getRooms().values().stream().toList();
-        if(!rooms.isEmpty()) {
+        if (!rooms.isEmpty()) {
             Column name = new Column();
             name.addRow(new Row("Név", false, false, Row.Aligment.CENTER));
 
@@ -52,13 +76,12 @@ public class RoomListView implements IView, IView.Tableable {
                 psw.addRow(new Row(room.hasPassword() ? "Igen" : "Nem", false, false, Row.Aligment.CENTER));
             }
 
-
             Table table = new Table();
             table.addColumn(name, infos, psw);
 
             int length = -1;
             for (String value : table.getTable().values()) {
-                if(length < value.length()) {
+                if (length < value.length()) {
                     length = value.length();
                 }
             }
@@ -69,13 +92,6 @@ public class RoomListView implements IView, IView.Tableable {
             header.addColumn(column);
             Main.getClientData().getTableManager().setHeader(header);
             Main.getClientData().getTableManager().setTable(table);
-            return;
         }
-
-        Table table = new Table();
-        Column column = new Column();
-        column.addRow(new Row("Töltés...", false, false, Row.Aligment.CENTER));
-        table.addColumn(column);
-        Main.getClientData().getTableManager().setTable(table);
     }
 }

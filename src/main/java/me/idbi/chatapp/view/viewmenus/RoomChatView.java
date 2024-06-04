@@ -1,6 +1,7 @@
 package me.idbi.chatapp.view.viewmenus;
 
 import lombok.Getter;
+import lombok.Setter;
 import me.idbi.chatapp.ClientData;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.messages.ClientMessage;
@@ -19,6 +20,8 @@ import java.util.List;
 
 public class RoomChatView implements IView {
     @Getter private static final int messagesPerScroll = 3;
+    @Getter @Setter
+    private static boolean doubleRefresh = false;
 
     @Override
     public boolean isCursor() {
@@ -26,33 +29,53 @@ public class RoomChatView implements IView {
     }
 
     @Override
-    public void show() {
+    public boolean hasThread() {
+        return true;
+    }
+
+    @Override
+    public boolean hasInput() {
+        return true;
+    }
+
+    @Override
+    public long getUpdateInterval() {
+        return 20;
+    }
+
+    @Override
+    public void start() {
         Main.getClientData().getTerminalManager().clear();
         new Thread(new Client.ClientTester()).start();
-        while (true) {
-            try {
-                Thread.sleep(20);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            if(!Main.getClientData().isRefreshChatRoom()) continue;
-            //Main.getClientData().getTerminalManager().clear();
-            int termHeight = Main.getClientData().getTerminalManager().getHeight();
+        Main.getClientData().setRefreshChatRoom(true);
+    }
 
-            List<IMessage> clientMessages = new ArrayList<IMessage>(Main.getClientData().getCurrentRoom().getMessages())
-                    .stream()
-                    .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
-                    .toList();
+    @Override
+    public void update() {
+        if(!Main.getClientData().isRefreshChatRoom()) return;
+        if(!doubleRefresh) {
+            doubleRefresh = true;
+        }
+        //Main.getClientData().getTerminalManager().clear();
+        int termHeight = Main.getClientData().getTerminalManager().getHeight();
 
-            Main.getClientData().getTerminalManager().clear();
-            if(clientMessages.size() < termHeight) {
-                clientMessages.stream().map(IMessage::getMessage).forEach(System.out::println);
-            } else {
-                List<String> currentMessages = getScrollMessages(clientMessages);
-                currentMessages.forEach(System.out::println);
-            }
-            System.out.println(Main.getClientData().getTerminalManager().getKeyboardListener().getBuffer());
-            Main.getClientData().setRefreshChatRoom(false);
+        List<IMessage> clientMessages = new ArrayList<IMessage>(Main.getClientData().getCurrentRoom().getMessages())
+                .stream()
+                .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
+                .toList();
+
+        Main.getClientData().getTerminalManager().clear();
+        if(clientMessages.size() < termHeight - 1) {
+            clientMessages.stream().map(IMessage::getMessage).forEach(System.out::println);
+        } else {
+            List<String> currentMessages = getScrollMessages(clientMessages);
+            currentMessages.forEach(System.out::println);
+        }
+        //System.out.print("");
+        //System.out.println(Main.getClientData().getTerminalManager().getKeyboardListener().getBuffer());
+        if(doubleRefresh){
+            //Main.getClientData().setRefreshChatRoom(false);
+            doubleRefresh = false;
         }
     }
 
@@ -78,13 +101,14 @@ public class RoomChatView implements IView {
             List<String> splitted = message.getMessage(width);
             List<String> previousSplitted = message.getMessage(previousWidth);
 
+            //                  2                   1
             changedLines += splitted.size() - previousSplitted.size();
 
             scrollMessages.addAll(splitted);
         }
 
-        Main.getClientData().addScrollState(Math.round((float) changedLines / Main.getMessagePerScroll()));
-        Main.debug(changedLines + " " + (Math.round((float) changedLines / Main.getMessagePerScroll())) + " " + Main.getClientData().getScrollState());
+        Main.getClientData().addScrollState(changedLines / Main.getMessagePerScroll());
+        Main.debug(changedLines + " " + (changedLines / Main.getMessagePerScroll()) + " " + Main.getClientData().getScrollState());
 
         idx1 = scrollMessages.size() - state * messagesPerScroll;
         idx2 = scrollMessages.size() - state * messagesPerScroll - (termHeight - 1); // - term.height

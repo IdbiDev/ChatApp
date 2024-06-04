@@ -26,12 +26,32 @@ public class RoomJoinView implements IView {
     }
 
     @Override
-    public void show() {
+    public boolean hasThread() {
+        return false;
+    }
+
+    @Override
+    public boolean hasInput() {
+        return false;
+    }
+
+    @Override
+    public long getUpdateInterval() {
+        return -1;
+    }
+
+    @Override
+    public void start() {
         String pw =  Main.getClientData().getInputManager().getInput("Jelszó > ");
         if(pw.equalsIgnoreCase("cancel") || pw.equalsIgnoreCase("back")) {
-            Main.getClientData().getViewManager().changeView(ViewType.ROOM_LIST);
+            Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
             return;
         }
         Main.getClient().sendPacket(new RoomJoinPacket(room.getUniqueId(), pw));
+    }
+
+    @Override
+    public void update() {
+
     }
 }
