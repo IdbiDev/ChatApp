@@ -54,7 +54,6 @@ public class ClientRoomJoinEvent extends Event implements Cancellable {
                 Main.getClientData().getTerminalManager().clear();
                 Main.getClientData().setCurrentRoom(room, joinAt);
 
-
                 Main.getClientData().getViewManager().setView(ViewType.ROOM_CHAT);
 
 //                System.out.println("called room chat ");

@@ -4,6 +4,8 @@ import lombok.Getter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.utils.TerminalManager;
 
+import java.io.IOException;
+
 @Getter
 public class ViewManager {
 

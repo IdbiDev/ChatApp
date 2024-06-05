@@ -76,27 +76,9 @@ public class RoomChatView implements IView {
                 currentMessages.forEach(System.out::println);
             }
         }
+        Main.getClientData().setRefreshChatRoom(false);
         //Main.getClientData().getTerminalManager().clear();
-        int termHeight = Main.getClientData().getTerminalManager().getHeight();
 
-        List<IMessage> clientMessages = new ArrayList<IMessage>(Main.getClientData().getCurrentRoom().getMessages())
-                .stream()
-                .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
-                .toList();
-
-        Main.getClientData().getTerminalManager().clear();
-        if(clientMessages.size() < termHeight - 1) {
-            clientMessages.stream().map(IMessage::getMessage).forEach(System.out::println);
-        } else {
-            List<String> currentMessages = getScrollMessages(clientMessages);
-            currentMessages.forEach(System.out::println);
-        }
-        //System.out.print("");
-        //System.out.println(Main.getClientData().getTerminalManager().getKeyboardListener().getBuffer());
-        if(doubleRefresh){
-            //Main.getClientData().setRefreshChatRoom(false);
-            doubleRefresh = false;
-        }
     }
 
     public List<String> getScrollMessages(List<IMessage> messages) {
