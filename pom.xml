@@ -43,6 +43,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <outputDirectory>/home/idbi/</outputDirectory>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                             <shadedClassifierName>me.idbi.chatapp</shadedClassifierName>

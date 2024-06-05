@@ -19,7 +19,10 @@ import java.util.Map;
 @Getter
 @Setter
 public class RoomListView implements IView, IView.Tableable {
-
+    @Override
+    public ViewType getType() {
+        return ViewType.ROOM_LIST;
+    }
     @Override
     public boolean isCursor() {
         return false;

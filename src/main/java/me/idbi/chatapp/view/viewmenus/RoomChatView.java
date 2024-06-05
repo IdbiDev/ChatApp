@@ -13,6 +13,7 @@ import me.idbi.chatapp.packets.client.DebugMessagePacket;
 import me.idbi.chatapp.packets.client.SendMessageToServerPacket;
 import me.idbi.chatapp.utils.TerminalManager;
 import me.idbi.chatapp.view.IView;
+import me.idbi.chatapp.view.ViewType;
 
 import java.awt.*;
 import java.util.*;
@@ -22,6 +23,11 @@ public class RoomChatView implements IView {
     @Getter private static final int messagesPerScroll = 3;
     @Getter @Setter
     private static boolean doubleRefresh = false;
+
+    @Override
+    public ViewType getType() {
+        return ViewType.ROOM_CHAT;
+    }
 
     @Override
     public boolean isCursor() {
@@ -40,7 +46,7 @@ public class RoomChatView implements IView {
 
     @Override
     public long getUpdateInterval() {
-        return 20;
+        return 10;
     }
 
     @Override
@@ -48,13 +54,27 @@ public class RoomChatView implements IView {
         Main.getClientData().getTerminalManager().clear();
         new Thread(new Client.ClientTester()).start();
         Main.getClientData().setRefreshChatRoom(true);
+
     }
 
     @Override
     public void update() {
         if(!Main.getClientData().isRefreshChatRoom()) return;
-        if(!doubleRefresh) {
-            doubleRefresh = true;
+        for (int i = 0; i <= 1; i++) {
+            int termHeight = Main.getClientData().getTerminalManager().getHeight();
+
+            List<IMessage> clientMessages = new ArrayList<IMessage>(Main.getClientData().getCurrentRoom().getMessages())
+                    .stream()
+                    .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
+                    .toList();
+
+            Main.getClientData().getTerminalManager().clear();
+            if(clientMessages.size() < termHeight - 1) {
+                clientMessages.stream().map(IMessage::getMessage).forEach(System.out::println);
+            } else {
+                List<String> currentMessages = getScrollMessages(clientMessages);
+                currentMessages.forEach(System.out::println);
+            }
         }
         //Main.getClientData().getTerminalManager().clear();
         int termHeight = Main.getClientData().getTerminalManager().getHeight();
@@ -82,18 +102,7 @@ public class RoomChatView implements IView {
     public List<String> getScrollMessages(List<IMessage> messages) {
         int termHeight = Main.getClientData().getTerminalManager().getHeight();
         int width = Main.getClientData().getTerminalManager().getWidth();
-        int state = Main.getClientData().getScrollState();
         int previousWidth = Main.getClientData().getPreviousWidth();
-
-        int idx1 = messages.size() - state * messagesPerScroll;
-        int idx2 = messages.size() - state * messagesPerScroll - (Math.max(termHeight - 1, 1)); // - term.height
-
-        // mentalBreakdownProtection
-        idx1 = Math.min(Math.max(idx1, termHeight - 1), messages.size());
-        idx2 = Math.max(idx2, 0);
-        Main.debug("innentől: " + idx2 + " idáig: " + idx1);
-
-        messages = messages.subList(idx2, idx1);
 
         int changedLines = 0;
         List<String> scrollMessages = new ArrayList<>();
@@ -108,12 +117,30 @@ public class RoomChatView implements IView {
         }
 
         Main.getClientData().addScrollState(changedLines / Main.getMessagePerScroll());
+
+//        int idx1 = messages.size() - state * messagesPerScroll;
+//        int idx2 = messages.size() - state * messagesPerScroll - (Math.max(termHeight - 1, 1)); // - term.height
+//
+//        // mentalBreakdownProtection
+//        idx1 = Math.min(Math.max(idx1, termHeight - 1), messages.size());
+//        idx2 = Math.max(idx2, 0);
+
+
+       // messages = messages.subList(idx2, idx1);
+
+        int state = Main.getClientData().getScrollState();
+        int scrolling = state * messagesPerScroll;
+        Main.debug("size: " + scrollMessages.size() + " stateMsgs: " + scrolling + " termHeight:" + Math.max(termHeight - 1, 1));
+        int idx1 = scrollMessages.size() - scrolling;
+        int idx2 = (scrollMessages.size() - scrolling) - (Math.max(termHeight - 1, 1)); // - term.height
+
+        idx1 = Math.min(Math.max(idx1, termHeight - 1), messages.size());
+        idx2 = Math.max(idx2, 0);
+
+        Main.debug("innentől: " + idx2 + " idáig: " + idx1 + " state: " + state);
         Main.debug(changedLines + " " + (changedLines / Main.getMessagePerScroll()) + " " + Main.getClientData().getScrollState());
 
-        idx1 = scrollMessages.size() - state * messagesPerScroll;
-        idx2 = scrollMessages.size() - state * messagesPerScroll - (termHeight - 1); // - term.height
-
-        return scrollMessages.subList(Math.max(idx2, 0), Math.min(Math.max(idx1, termHeight - 1), scrollMessages.size()));
+        return scrollMessages.subList(idx2, idx1);
     }
 
     public List<IMessage> getScrollIMessages(List<IMessage> messages, int width) {
@@ -147,7 +174,6 @@ public class RoomChatView implements IView {
         //return buziGeci.subList(0, Math.min(termHeight - 1, buziGeci.size()));
         //return messages.subList(Math.max(idx2, 0), Collections.max(Arrays.asList(idx1, termHeight - 1, messages.size())));
     }
-
     public List<String> getScrollMessagesSplitted(List<IMessage> messages) {
         List<String> asd = new ArrayList<>();
 

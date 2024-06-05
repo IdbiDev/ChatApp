@@ -36,10 +36,14 @@ public class Main implements Listener {
     public static void debug(String message) {
         Main.getClient().sendPacket(new DebugMessagePacket(message));
     }
-    public static void debugFile(String message) throws IOException {
-        FileOutputStream debugFile = new FileOutputStream ("debug.txt");
-        debugFile.write((message+"\r\n").getBytes(StandardCharsets.UTF_8));
-
+    public static void debugFile(String message) {
+        try {
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("debug.txt", true));
+            bufferedWriter.write((message + "\r\n"));
+            bufferedWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     // Server //
     public static void main(String[] args) throws IOException, InterruptedException {
@@ -51,8 +55,7 @@ public class Main implements Listener {
 //        while (c) {
 //            System.out.println(nonBlockingReader.read());
 //        }
-        debugFile("cCica");
-        debugFile("cCica2");
+
         Options options = new Options();
         Option serverOption = new Option("s", "server", false, "Run as server");
         serverOption.setRequired(false);

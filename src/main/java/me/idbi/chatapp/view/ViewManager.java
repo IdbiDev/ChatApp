@@ -23,7 +23,7 @@ public class ViewManager {
     public void setView(IView view) {
         this.view = view;
 
-        if(view.isCursor()) Main.getClientData().getTerminalManager().showCursor();
+        if (view.isCursor()) Main.getClientData().getTerminalManager().showCursor();
         else Main.getClientData().getTerminalManager().hideCursor();
 
         if (this.thread != null && this.thread.isAlive()) {
@@ -33,9 +33,9 @@ public class ViewManager {
 
         if (view.hasThread()) {
             this.thread = new Thread(this::startUpdater);
+            this.thread.start();
             return;
         }
-
         startUpdater();
     }
 

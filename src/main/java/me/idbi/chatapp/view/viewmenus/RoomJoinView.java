@@ -17,6 +17,10 @@ public class RoomJoinView implements IView {
     @Setter private Room room;
 
     @Override
+    public ViewType getType() {
+        return ViewType.ROOM_JOIN;
+    }
+    @Override
     public boolean isCursor() {
         return true;
     }

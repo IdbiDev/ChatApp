@@ -169,11 +169,13 @@ public class TerminalManager {
         try {
 
             if (isWindows) {
+
                 new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
             } else {
-                Runtime.getRuntime().exec("clear");
+                new ProcessBuilder("clear").inheritIO().start().waitFor();
             }
         } catch (final Exception e) {
+            e.printStackTrace();
             //  Handle any exceptions.
         }
     }
@@ -251,6 +253,7 @@ public class TerminalManager {
     public TerminalManager() throws IOException {
         terminal = TerminalBuilder.terminal();
         isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
+        System.out.println(System.getProperty("os.name") + isWindows);
         clear();
         System.out.print(Cursor.HOME);
         terminal.enterRawMode();

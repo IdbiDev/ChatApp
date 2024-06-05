@@ -59,8 +59,11 @@ public class ClientData {
 
     public void addScrollState(List<IMessage> messages, int state) {
         this.scrollState += state;
+        if(this.scrollState < 0)
+            this.scrollState = 0;
+        this.refreshChatRoom = true;
         //Main.getClient().sendPacket(new DebugMessagePacket(messages.size() + " " + ((RoomChatView) ViewType.ROOM_CHAT.getView()).getScrollMessagesSplitted(messages).size()));
-        this.scrollState = Math.min(this.scrollState, ((RoomChatView) ViewType.ROOM_CHAT.getView()).getScrollMessages(messages).size() / Main.getMessagePerScroll());
+        //this.scrollState = Math.min(this.scrollState, ((RoomChatView) ViewType.ROOM_CHAT.getView()).getScrollMessages(messages).size() / Main.getMessagePerScroll());
         //this.refreshChatRoom = true;
     }
 

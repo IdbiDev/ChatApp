@@ -3,8 +3,14 @@ package me.idbi.chatapp.view.viewmenus;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.utils.TerminalManager;
 import me.idbi.chatapp.view.IView;
+import me.idbi.chatapp.view.ViewType;
 
 public class GlobalBanView implements IView {
+    @Override
+    public ViewType getType() {
+        return ViewType.GLOBAL_BAN;
+    }
+
     @Override
     public boolean isCursor() {
         return false;

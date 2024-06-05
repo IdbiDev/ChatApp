@@ -10,6 +10,7 @@ public interface IView {
 
     }
 
+    ViewType getType();
     boolean isCursor();
     boolean hasThread();
     boolean hasInput();

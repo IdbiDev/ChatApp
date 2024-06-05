@@ -8,6 +8,10 @@ import me.idbi.chatapp.view.ViewType;
 import java.util.concurrent.TimeUnit;
 
 public class LoginView implements IView {
+    @Override
+    public ViewType getType() {
+        return ViewType.LOGIN;
+    }
 
     @Override
     public boolean isCursor() {
