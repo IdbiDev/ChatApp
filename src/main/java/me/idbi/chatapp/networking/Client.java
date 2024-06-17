@@ -112,7 +112,8 @@ public class Client {
                         Object packetObject = client.in.readObject();
 
                         if (packetObject instanceof LoginPacket packet) {
-                            new ClientLoginEvent().callEvent();
+                            Main.getClientData().setClientMember(packet.getLoginedMember());
+                            new ClientLoginEvent(packet.getLoginedMember()).callEvent();
                         } else if (packetObject instanceof ReceiveRefreshPacket packet) {
                             new ClientRefreshEvent(packet.getRooms()).callEvent();
                         } else if (packetObject instanceof RoomJoinResultPacket packet) {

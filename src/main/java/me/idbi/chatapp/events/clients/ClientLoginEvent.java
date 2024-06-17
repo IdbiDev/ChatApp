@@ -2,14 +2,15 @@ package me.idbi.chatapp.events.clients;
 
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.eventmanagers.interfaces.Event;
+import me.idbi.chatapp.networking.Member;
 import me.idbi.chatapp.packets.client.RequestRefreshPacket;
 import me.idbi.chatapp.utils.TerminalManager;
 import me.idbi.chatapp.view.ViewType;
 
 public class ClientLoginEvent extends Event {
-
-    public ClientLoginEvent() {
-
+    private Member clientMember;
+    public ClientLoginEvent(Member clientMember) {
+        this.clientMember = clientMember;
     }
 
     @Override

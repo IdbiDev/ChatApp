@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.idbi.chatapp.messages.IMessage;
 import me.idbi.chatapp.messages.SystemMessage;
+import me.idbi.chatapp.networking.Member;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.table.TableManager;
 import me.idbi.chatapp.utils.InputManager;
@@ -32,6 +33,8 @@ public class ClientData {
     @Setter private boolean refreshChatRoom;
     @Setter private boolean refreshBuffer;
     private Date joinedDate;
+    @Getter @Setter
+    private Member clientMember;
 
 
     public ClientData() throws IOException {

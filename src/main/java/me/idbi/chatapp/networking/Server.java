@@ -78,6 +78,21 @@ public class Server {
             out.flush();
         } catch (IOException e) {
             if (packet instanceof PingPacket) {
+                Socket socketMember;
+                for (Room room : sockets.get(receiver).getRooms()) {
+                    for(Member m : room.getMembers()) {
+                        if((socketMember = getSocketByMember(m)) == null || socketMember == receiver) {
+                            continue;
+                        }
+                        sendPacket(socketMember, new SendMessageToClientPacket(
+                                        new SystemMessage(
+                                                room,
+                                                SystemMessage.MessageType.QUIT.setMember(sockets.get(receiver)),
+                                                1
+                                        ))
+                        );
+                    }
+                }
                 new ServerClientDisconnectEvent(sockets.get(receiver), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
 
                 System.out.println(sockets.get(receiver).getName() + " disconnected (No connection)");
@@ -114,6 +129,21 @@ public class Server {
                 if (!socket.isConnected() || socket.isClosed()) {
 
                     System.out.println("Socket is closed");
+                    Socket socketMember;
+                    for (Room room : sockets.get(socket).getRooms()) {
+                        for(Member m : room.getMembers()) {
+                            if((socketMember = getSocketByMember(m)) == null || socketMember == socket) {
+                                continue;
+                            }
+                            sendPacket(socketMember, new SendMessageToClientPacket(
+                                    new SystemMessage(
+                                            room,
+                                            SystemMessage.MessageType.QUIT.setMember(sockets.get(socket)),
+                                            1
+                                    ))
+                            );
+                        }
+                    }
                     new ServerClientDisconnectEvent(sockets.get(entry.getKey()), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
                     for (Room room : rooms.values()) {
                         room.removeMember(entry.getValue());
@@ -132,10 +162,9 @@ public class Server {
                         if (packetObject instanceof HandshakePacket packet) {
                             System.out.println("Loginolt: " + packet.getId());
                             sockets.put(socket, new Member(packet.getId(), new ArrayList<>(),new HashMap<>()));
-                            sendPacket(socket, new LoginPacket());
+                            sendPacket(socket, new LoginPacket(sockets.get(socket)));
 
                         } else if (packetObject instanceof RequestRefreshPacket) {
-                            System.out.println("CAT");
                             sendPacket(socket, new ReceiveRefreshPacket(this.rooms));
 
                         } else if(packetObject instanceof RoomJoinPacket packet) {
@@ -197,7 +226,10 @@ public class Server {
                             Room selectedRoom = this.rooms.get(packet.getMessage().getRoom().getUniqueId());
                             ServerReceiveMessageEvent event = new ServerReceiveMessageEvent(packet.getMessage());
                             packet.getMessage().setDate(new Date());
-                            System.out.println(packet.getMessage().getSender() + packet.getMessage().getMessage());
+
+                            selectedRoom.getMessages().add(packet.getMessage());
+
+                            System.out.println(packet.getMessage().getMessage());
                             if(event.callEvent()) {
                                 Socket socketMember;
                                 for (Member member : selectedRoom.getMembers()) {
@@ -209,10 +241,34 @@ public class Server {
                                 }
 
                             }
+                        }else if (packetObject instanceof CreateRoomPacket packet) {
+                            Room newRoom = new Room(UUID.randomUUID(),packet.getName(),entry.getValue(),packet.getPassword(),new ArrayList<>(),packet.getMaxMembers(),new ArrayList<>());
+                            this.rooms.put(newRoom.getUniqueId(), newRoom);
+
+                            newRoom.addMember(entry.getValue());
+                            SystemMessage msg = new SystemMessage(newRoom, TerminalManager.Color.GREEN.getCode() + SystemMessage.MessageType.ROOM_CREATE.setRoom(newRoom.getName()) + TerminalManager.Color.RESET, new Date(), 1);
+                            newRoom.getMessages().add(msg);
+                            sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.SUCCESS, newRoom, new Date()));
+                            for (Map.Entry<Socket, Member> socketMemberEntry : this.sockets.entrySet()) {
+                                sendPacket(socketMemberEntry.getKey(), new ReceiveRefreshPacket(this.rooms));
+                            }
                         }
                     }
                 } catch (IOException | ClassNotFoundException e) {
                     System.out.println("ERROR while reading!");
+                    try {
+                        sendPacket(socket,new ShutdownPacket());
+                        clientInputStreams.get(socket).close();
+
+                        sockets.remove(socket);
+                        heartbeatTable.remove(socket);
+                        for (Room room : rooms.values()) {
+                            room.removeMember(sockets.get(socket));
+                        }
+                        socket.close();
+                    } catch (IOException ex) {
+                        System.out.println("GÁZ VAN");
+                    }
                     e.printStackTrace();
                 }
             }
@@ -270,6 +326,21 @@ public class Server {
                             entry.getValue().setFailCount(entry.getValue().getFailCount() + 1);
                             if (entry.getValue().getFailCount() > 999999999) {
                                 // disconnect
+                                Socket socketMember;
+                                for (Room room : server.sockets.get(entry.getKey()).getRooms()) {
+                                    for(Member m : room.getMembers()) {
+                                        if((socketMember = server.getSocketByMember(m)) == null || socketMember == entry.getKey()) {
+                                            continue;
+                                        }
+                                        server.sendPacket(socketMember, new SendMessageToClientPacket(
+                                                new SystemMessage(
+                                                        room,
+                                                        SystemMessage.MessageType.QUIT.setMember(server.sockets.get(entry.getKey())),
+                                                        1
+                                                ))
+                                        );
+                                    }
+                                }
                                 new ServerClientDisconnectEvent(server.sockets.get(entry.getKey()), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
                                 System.out.println(server.sockets.get(entry.getKey()).getName() + " disconnected from timeout");
                                 server.heartbeatTable.remove(entry.getKey());
