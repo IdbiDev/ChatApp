@@ -1,7 +1,6 @@
 package me.idbi.chatapp.networking;
 
 import lombok.Getter;
-import me.idbi.chatapp.Main;
 import me.idbi.chatapp.events.servers.ServerClientDisconnectEvent;
 import me.idbi.chatapp.events.servers.ServerReceiveMessageEvent;
 import me.idbi.chatapp.events.servers.ServerRoomJoinEvent;
@@ -11,11 +10,11 @@ import me.idbi.chatapp.packets.ServerPacket;
 import me.idbi.chatapp.packets.client.*;
 import me.idbi.chatapp.packets.server.*;
 import me.idbi.chatapp.utils.RoomJoinResult;
+import me.idbi.chatapp.utils.TerminalManager;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.channels.ScatteringByteChannel;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,8 +33,8 @@ public class Server {
     private final Map<UUID, Room> rooms;
 
     public Server(int port) {
-        this.sockets = new ConcurrentHashMap<>();
         this.rooms = new HashMap<>();
+        this.sockets = new ConcurrentHashMap<>();
         this.heartbeatTable = new ConcurrentHashMap<>();
         this.clientInputStreams = new ConcurrentHashMap<>();
         this.clientOutputStreams = new ConcurrentHashMap<>();
@@ -168,7 +167,7 @@ public class Server {
                             sendPacket(socket, new ReceiveRefreshPacket(this.rooms));
 
                         } else if(packetObject instanceof RoomJoinPacket packet) {
-                            Room selectedRoom = this.rooms.get(packet.getUUID());
+                            Room selectedRoom = this.rooms.get(packet.getUniqueId());
 
                             RoomJoinResult result = RoomJoinResult.SUCCESS;
 
@@ -192,18 +191,16 @@ public class Server {
                                 if(result == RoomJoinResult.SUCCESS) {
                                     selectedRoom.addMember(entry.getValue());
                                     Socket socketMember;
+                                    SystemMessage msg = new SystemMessage(
+                                            selectedRoom,
+                                            SystemMessage.MessageType.JOIN.setMember(entry.getValue()),
+                                            1
+                                    );
                                     for(Member member : selectedRoom.getMembers()) {
                                         if((socketMember = getSocketByMember(member)) == null) {
                                             continue;
                                         }
-                                        sendPacket(
-                                                socketMember, new SendMessageToClientPacket(
-                                                new SystemMessage(
-                                                        selectedRoom,
-                                                        SystemMessage.MessageType.JOIN.setMember(entry.getValue()),
-                                                        1
-                                                ))
-                                        );
+                                        sendPacket(socketMember, new SendMessageToClientPacket(msg));
 
                                         //Send member joined packet
 

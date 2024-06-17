@@ -29,6 +29,9 @@ public class SystemMessage implements IMessage, Serializable {
         public String setMember(String name) {
             return this.message.replace("%member%", name);
         }
+        public String setRoom(String room) {
+            return this.message.replace("%room%", room);
+        }
 
         public String setMember(Member member) {
             return this.setMember(member.getName());

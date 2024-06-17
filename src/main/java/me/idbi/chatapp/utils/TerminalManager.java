@@ -381,10 +381,14 @@ public class TerminalManager {
                         case 13: // Enter
                             if (Main.getClientData().getTableManager().getCurrentTable() != null && Main.getClientData().getViewManager().getView() != null) {
                                 if (Main.getClientData().getViewManager().getView() instanceof RoomListView) {
-                                    if(Main.getClientData().getTableManager().getCurrentTable().getSelectedRow() == null) {
+                                    if (Main.getClientData().getTableManager().getCurrentTable().getSelectedRow() == null) {
                                         break;
                                     }
                                     String selectedRoomName = Main.getClientData().getTableManager().getCurrentTable().getSelectedRow().getLine();
+                                    if(selectedRoomName.equals("Szoba készítés")) {
+                                        Main.getClientData().getViewManager().setView(ViewType.ROOM_CREATE);
+                                        break;
+                                    }
                                     Room selectedRoom = Main.getClientData().getRooms()
                                             .values()
                                             .stream()

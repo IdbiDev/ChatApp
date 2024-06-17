@@ -77,6 +77,7 @@ public class Main implements Listener {
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd = null;
 
+        System.setProperty("jna.encoding", "UTF8");
 
         try {
             cmd = parser.parse(options, args);

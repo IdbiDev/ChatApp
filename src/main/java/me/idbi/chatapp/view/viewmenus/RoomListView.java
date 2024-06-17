@@ -10,6 +10,7 @@ import me.idbi.chatapp.table.Row;
 import me.idbi.chatapp.view.IView;
 import me.idbi.chatapp.view.ViewType;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Getter
@@ -50,7 +51,7 @@ public class RoomListView implements IView, IView.Tableable {
 
     @Override
     public void update() {
-        List<Room> rooms = Main.getClientData().getRooms().values().stream().toList();
+        List<Room> rooms = Main.getClientData().getRooms().values().stream().sorted(Comparator.comparing(Room::getName)).toList();
         if (!rooms.isEmpty()) {
             Column name = new Column();
             name.addRow(new Row("Név", false, false, Row.Aligment.CENTER));
@@ -84,6 +85,10 @@ public class RoomListView implements IView, IView.Tableable {
                     length = value.length();
                 }
             }
+
+            name.addRow(new Row("Szoba készítés", true, false, Row.Aligment.LEFT));
+            infos.addRow(new Row(" ", false, false, Row.Aligment.CENTER));
+            psw.addRow(new Row(" ", false, false, Row.Aligment.CENTER));
 
             Table header = new Table();
             Column column = new Column(el -> el.setWidth(Main.getClientData().getTerminalManager().getWidth() - 4));

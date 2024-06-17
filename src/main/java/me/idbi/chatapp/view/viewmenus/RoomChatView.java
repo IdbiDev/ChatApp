@@ -54,6 +54,7 @@ public class RoomChatView implements IView {
         Main.getClientData().getTerminalManager().clear();
         //new Thread(new Client.ClientTester()).start();
         Main.getClientData().setRefreshChatRoom(true);
+        Main.getClientData().refreshBuffer();
 
     }
 
