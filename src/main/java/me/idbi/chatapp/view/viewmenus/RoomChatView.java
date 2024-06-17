@@ -18,6 +18,7 @@ import me.idbi.chatapp.view.ViewType;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class RoomChatView implements IView {
     @Getter private static final int messagesPerScroll = 3;
@@ -30,7 +31,7 @@ public class RoomChatView implements IView {
 
     @Override
     public boolean isCursor() {
-        return false;
+        return true;
     }
 
     @Override
@@ -51,31 +52,42 @@ public class RoomChatView implements IView {
     @Override
     public void start() {
         Main.getClientData().getTerminalManager().clear();
-        new Thread(new Client.ClientTester()).start();
+        //new Thread(new Client.ClientTester()).start();
         Main.getClientData().setRefreshChatRoom(true);
 
     }
 
     @Override
     public void update() {
-        if(!Main.getClientData().isRefreshChatRoom()) return;
         for (int i = 0; i <= 1; i++) {
-            int termHeight = Main.getClientData().getTerminalManager().getHeight();
+            if(Main.getClientData().isRefreshChatRoom()) {
+                int termHeight = Main.getClientData().getTerminalManager().getHeight();
+                Main.getClientData().getTerminalManager().home();
 
-            List<IMessage> clientMessages = new ArrayList<IMessage>(Main.getClientData().getCurrentRoom().getMessages())
-                    .stream()
-                    .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
-                    .toList();
+                List<IMessage> clientMessages = new ArrayList<IMessage>(Main.getClientData().getCurrentRoom().getMessages())
+                        .stream()
+                        .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
+                        .toList();
 
-            Main.getClientData().getTerminalManager().clear();
-            if(clientMessages.size() < termHeight - 1) {
-                clientMessages.stream().map(IMessage::getMessage).forEach(System.out::println);
-            } else {
+                Main.getClientData().getTerminalManager().clear();
+//            if(clientMessages.size() < termHeight - 1) {
+//                clientMessages.stream().map(IMessage::getMessage).forEach(System.out::println);
+//                // clientMessages.add(Main.getClient().getName() + " > " + Main.getClientData().getTerminalManager().getKeyboardListener().getBuffer());
+//            } else {
                 List<String> currentMessages = getScrollMessages(clientMessages);
                 currentMessages.forEach(System.out::println);
+
             }
+
+            // }
+        }
+        if(Main.getClientData().isRefreshBuffer()) {
+            Main.getClientData().getTerminalManager().moveCursor(Main.getClientData().getTerminalManager().getHeight(),0);
+            System.out.print(Main.getClient().getName() + " > " + Main.getClientData().getTerminalManager().getKeyboardListener().getBuffer());
+            Main.getClientData().setRefreshBuffer(false);
         }
         Main.getClientData().setRefreshChatRoom(false);
+
         //Main.getClientData().getTerminalManager().clear();
 
     }
@@ -111,15 +123,15 @@ public class RoomChatView implements IView {
 
         int state = Main.getClientData().getScrollState();
         int scrolling = state * messagesPerScroll;
-        Main.debug("size: " + scrollMessages.size() + " stateMsgs: " + scrolling + " termHeight:" + Math.max(termHeight - 1, 1));
+        // Main.debug("size: " + scrollMessages.size() + " stateMsgs: " + scrolling + " termHeight:" + Math.max(termHeight - 1, 1));
         int idx1 = scrollMessages.size() - scrolling;
         int idx2 = (scrollMessages.size() - scrolling) - (Math.max(termHeight - 1, 1)); // - term.height
 
         idx1 = Math.min(Math.max(idx1, termHeight - 1), messages.size());
         idx2 = Math.max(idx2, 0);
 
-        Main.debug("innentől: " + idx2 + " idáig: " + idx1 + " state: " + state);
-        Main.debug(changedLines + " " + (changedLines / Main.getMessagePerScroll()) + " " + Main.getClientData().getScrollState());
+        //Main.debug("innentől: " + idx2 + " idáig: " + idx1 + " state: " + state);
+        //Main.debug(changedLines + " " + (changedLines / Main.getMessagePerScroll()) + " " + Main.getClientData().getScrollState());
 
         return scrollMessages.subList(idx2, idx1);
     }
