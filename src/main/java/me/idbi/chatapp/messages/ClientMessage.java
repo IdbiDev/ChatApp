@@ -36,6 +36,11 @@ public class ClientMessage implements IMessage, Serializable {
     }
 
     @Override
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    @Override
     public boolean isSystem() {
         return false;
     }

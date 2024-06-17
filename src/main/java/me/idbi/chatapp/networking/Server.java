@@ -196,7 +196,8 @@ public class Server {
                         else if (packetObject instanceof SendMessageToServerPacket packet) {
                             Room selectedRoom = this.rooms.get(packet.getMessage().getRoom().getUniqueId());
                             ServerReceiveMessageEvent event = new ServerReceiveMessageEvent(packet.getMessage());
-                            System.out.println("Got message: " + packet.getMessage().getMessage());
+                            packet.getMessage().setDate(new Date());
+                            System.out.println(packet.getMessage().getSender() + packet.getMessage().getMessage());
                             if(event.callEvent()) {
                                 Socket socketMember;
                                 for (Member member : selectedRoom.getMembers()) {

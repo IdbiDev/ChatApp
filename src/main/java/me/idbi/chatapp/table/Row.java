@@ -1,9 +1,6 @@
-package me.idbi.chatapp.table.rows;
+package me.idbi.chatapp.table;
 
 import lombok.*;
-import me.idbi.chatapp.utils.TerminalManager;
-
-import java.util.function.Function;
 
 @Setter
 @Getter

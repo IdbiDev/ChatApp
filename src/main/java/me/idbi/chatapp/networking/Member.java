@@ -10,7 +10,6 @@ import java.util.Map;
 @Getter
 @AllArgsConstructor
 public class Member implements Serializable {
-
     private String name;
     private List<Room> rooms;
     private Map<Room, String> passwords;

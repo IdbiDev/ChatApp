@@ -20,6 +20,7 @@ import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.NonBlockingReader;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 public class TerminalManager {
@@ -249,6 +250,9 @@ public class TerminalManager {
         System.out.print(text);
         resetStyle();
     }
+    public void clearLine(){
+        System.out.print("\r" + Screen.CLEAR_LINE);
+    }
 
     public TerminalManager() throws IOException {
         terminal = TerminalBuilder.terminal();
@@ -299,8 +303,7 @@ public class TerminalManager {
     public static class KeyboardListener implements Runnable {
 
         private final TerminalManager terminal;
-        @Getter
-        @Setter
+        @Getter @Setter
         private String buffer;
 
         public KeyboardListener(TerminalManager terminal) {
@@ -350,6 +353,7 @@ public class TerminalManager {
                                     if (nonBlockingReader.read() == 126) { // PAGE DOWN
                                         if(Main.getClientData().getViewManager().getView() instanceof RoomChatView) {
                                             Main.getClientData().removeScrollState(RoomChatView.getMessagesPerScroll() * 3);
+                                            Main.getClientData().refreshBuffer();
                                         }
 
                                         break;
@@ -363,6 +367,7 @@ public class TerminalManager {
                                                     .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
                                                     .toList();
                                             Main.getClientData().addScrollState(clientMessages, RoomChatView.getMessagesPerScroll() * 3);
+                                            Main.getClientData().refreshBuffer();
                                         }
                                         break;
                                     }
@@ -393,7 +398,14 @@ public class TerminalManager {
                                     }
                                 }
                             }
-                            buffer = "";
+                            //Main.debug(Main.getClient().getName() + " > " + buffer);
+                            if(Main.getClientData().getViewManager().getView() instanceof RoomChatView) {
+                                if(this.buffer.isEmpty() || this.buffer.isBlank()) continue;
+                                Main.getClient().sendPacket(new SendMessageToServerPacket(new ClientMessage(Main.getClient().getName(), Main.getClientData().getCurrentRoom(), buffer.strip())));
+                                buffer = "";
+                                Main.getClientData().getTerminalManager().clearLine();
+                                Main.getClientData().refreshBuffer();
+                            }
                             break;
                         case 27: // escap
                             if (Main.getClientData().getViewManager().getView() instanceof RoomJoinView) {
@@ -408,12 +420,21 @@ public class TerminalManager {
                             }
                             if (buffer.isEmpty()) continue;
                             buffer = buffer.substring(0, buffer.length() - 1);
+                            Main.getClientData().getTerminalManager().clearLine();
+                            Main.getClientData().refreshBuffer();
+                            //System.out.print(" ");
+                            //Main.getClientData().getTerminalManager().moveCursorLeft(1);
+
                             break;
                         default:
                             if (!terminal.isCanWrite()) {
                                 continue;
                             }
+                            if((Main.getClient().getName() + " > ").length() + buffer.length() > terminal.getWidth()-1) {
+                                continue;
+                            }
                             buffer += (char) key;
+                            Main.getClientData().refreshBuffer();
                             //Main.debug(String.valueOf((char) key));
                             break;
                     }

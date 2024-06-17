@@ -8,6 +8,7 @@ import java.util.List;
 public interface IMessage {
 
     Date getDate();
+    void setDate(Date date);
     boolean isSystem();
     Room getRoom();
     String getMessage();

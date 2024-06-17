@@ -30,19 +30,35 @@ public class ClientData {
     private final TerminalManager terminalManager;
     private final ViewManager viewManager;
     @Setter private boolean refreshChatRoom;
+    @Setter private boolean refreshBuffer;
     private Date joinedDate;
+
 
     public ClientData() throws IOException {
         this.scrollState = 0;
+        this.currentRoom = null;
+        this.refreshBuffer = false;
+        this.refreshChatRoom = false;
         this.rooms = new HashMap<>();
         this.passwords = new HashMap<>();
-        this.currentRoom = null;
-        this.refreshChatRoom = false;
-        this.inputManager = new InputManager();
-        this.terminalManager = new TerminalManager();
-        this.tableManager = new TableManager();
         this.viewManager = new ViewManager();
+        this.inputManager = new InputManager();
+        this.tableManager = new TableManager();
+        this.terminalManager = new TerminalManager();
         this.previousWidth = this.terminalManager.getWidth();
+    }
+
+    public void setRefreshBuffer(boolean state) {
+        this.refreshBuffer = true;
+    }
+
+    public void refreshBuffer() {
+        if(canWrite())
+            setRefreshBuffer(true);
+    }
+
+    public boolean canWrite() {
+        return this.scrollState == 0;
     }
 
     public void setScrollState(int state) {

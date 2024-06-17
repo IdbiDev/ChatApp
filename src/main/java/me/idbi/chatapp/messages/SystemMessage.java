@@ -58,6 +58,11 @@ public class SystemMessage implements IMessage, Serializable {
         this.date = new Date();
     }
 
+    @Override
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
     public boolean isExpired() {
         return this.date.getTime() < this.expireTime;
     }

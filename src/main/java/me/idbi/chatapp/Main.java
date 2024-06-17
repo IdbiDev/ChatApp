@@ -102,7 +102,7 @@ public class Main implements Listener {
 
 
         eventManager = new EventManager();
-        messageDateFormat = new SimpleDateFormat("MM.dd HH:mm");
+        messageDateFormat = new SimpleDateFormat("MM.dd HH:mm:ss");
         if (args.length >= 1) {
             if (cmd.hasOption("c")) {
                 clientData = new ClientData();

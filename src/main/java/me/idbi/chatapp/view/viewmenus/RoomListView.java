@@ -3,18 +3,14 @@ package me.idbi.chatapp.view.viewmenus;
 import lombok.Getter;
 import lombok.Setter;
 import me.idbi.chatapp.Main;
-import me.idbi.chatapp.networking.Client;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.table.Column;
 import me.idbi.chatapp.table.Table;
-import me.idbi.chatapp.table.rows.Row;
+import me.idbi.chatapp.table.Row;
 import me.idbi.chatapp.view.IView;
 import me.idbi.chatapp.view.ViewType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Getter
 @Setter

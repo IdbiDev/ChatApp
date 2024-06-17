@@ -2,7 +2,6 @@ package me.idbi.chatapp.table;
 
 import lombok.Getter;
 import lombok.Setter;
-import me.idbi.chatapp.table.rows.Row;
 import me.idbi.chatapp.utils.formatters.Formatter;
 import me.idbi.chatapp.utils.formatters.FormatterUtils;
 import me.idbi.chatapp.utils.MapUtils;

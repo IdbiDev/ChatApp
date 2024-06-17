@@ -21,8 +21,7 @@ import java.util.List;
 
 public class RoomChatView implements IView {
     @Getter private static final int messagesPerScroll = 3;
-    @Getter @Setter
-    private static boolean doubleRefresh = false;
+    @Getter @Setter private static boolean doubleRefresh = false;
 
     @Override
     public ViewType getType() {
