@@ -23,6 +23,7 @@ public class Client {
     @Getter private Socket socket;
 
     private ClientListener listener;
+    private Thread threadlistener;
     @Getter @Setter
     private boolean canRun = true;
     @Getter private String host;
@@ -38,14 +39,24 @@ public class Client {
         this.name = System.getProperty("user.name");
 
     }
+
+    public void panic() throws IOException {
+        canRun = false;
+        out = null;
+        this.in = null;
+        this.threadlistener.interrupt();
+        this.socket.close();
+        this.socket = null;
+        connect();
+    }
     public boolean connect() {
         try {
             this.socket = new Socket(host, port); //server
             canRun = true;
             this.listener = new ClientListener(this);
-            Thread t = new Thread(this.listener);
+            threadlistener = new Thread(this.listener);
 
-            t.start();
+            threadlistener.start();
             ClientPacket packet = new HandshakePacket(this.name);
             sendPacket(packet);
             return true;
@@ -132,6 +143,12 @@ public class Client {
                 } catch (IOException | ClassNotFoundException e) {
                     System.out.println("ERROR while reading!");
                     e.printStackTrace();
+                    try {
+                        client.panic();
+                    } catch (IOException ex) {
+                        System.out.println("CLIENT PANIC EXCEPTION: " + ex.getMessage());
+                        //throw new RuntimeException(ex);
+                    }
                 }
             }
         }
