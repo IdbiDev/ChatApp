@@ -15,6 +15,7 @@ import org.jline.utils.NonBlockingReader;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.Scanner;
 
 /*
     Todo: Kérdések mr sósmogyorónak or patrik :3:
@@ -47,7 +48,6 @@ public class Main implements Listener {
     }
     // Server //
     public static void main(String[] args) throws IOException, InterruptedException {
-
 //        Terminal terminal = TerminalBuilder.terminal();
 //        terminal.enterRawMode();
 //        NonBlockingReader nonBlockingReader = terminal.reader();

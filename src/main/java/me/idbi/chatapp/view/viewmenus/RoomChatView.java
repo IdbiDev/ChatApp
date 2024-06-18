@@ -2,23 +2,14 @@ package me.idbi.chatapp.view.viewmenus;
 
 import lombok.Getter;
 import lombok.Setter;
-import me.idbi.chatapp.ClientData;
 import me.idbi.chatapp.Main;
-import me.idbi.chatapp.messages.ClientMessage;
 import me.idbi.chatapp.messages.IMessage;
 import me.idbi.chatapp.messages.SystemMessage;
-import me.idbi.chatapp.networking.Client;
-import me.idbi.chatapp.networking.Room;
-import me.idbi.chatapp.packets.client.DebugMessagePacket;
-import me.idbi.chatapp.packets.client.SendMessageToServerPacket;
-import me.idbi.chatapp.utils.TerminalManager;
 import me.idbi.chatapp.view.IView;
 import me.idbi.chatapp.view.ViewType;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class RoomChatView implements IView {
     @Getter private static final int messagesPerScroll = 3;
@@ -84,7 +75,7 @@ public class RoomChatView implements IView {
         }
         if(Main.getClientData().isRefreshBuffer()) {
             Main.getClientData().getTerminalManager().moveCursor(Main.getClientData().getTerminalManager().getHeight(),0);
-            System.out.print(Main.getClient().getName() + " > " + Main.getClientData().getTerminalManager().getKeyboardListener().getBuffer());
+            System.out.print(Main.getClient().getName() + " > " + Main.getClientData().getTerminalManager().getKeyboardListener().getChatBuffer());
             Main.getClientData().setRefreshBuffer(false);
         }
         Main.getClientData().setRefreshChatRoom(false);

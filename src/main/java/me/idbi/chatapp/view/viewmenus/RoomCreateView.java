@@ -14,6 +14,9 @@ import me.idbi.chatapp.view.ViewType;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class RoomCreateView implements IView {
 
@@ -28,7 +31,7 @@ public class RoomCreateView implements IView {
 
     @Override
     public boolean hasThread() {
-        return false;
+        return true;
     }
 
     @Override
@@ -43,25 +46,32 @@ public class RoomCreateView implements IView {
 
     @Override
     public void start() {
-        Main.getClientData().getTerminalManager().clear();
-        String name = null;
-        while(name == null)
-            name = Main.getClientData().getInputManager().getInput("Szoba neve > ");
+        Runnable exit = () -> Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
 
-        String maxMembersString = null;
-        do { Main.getClientData().getInputManager().getInput("Maximum felhasználók > "); }
-        while (!isNull(maxMembersString) && !maxMembersString.matches("^[0-9]+$"));
+        Main.getClientData().getTerminalManager().clear();
+        AtomicReference<String> name = new AtomicReference<String>();
+        Main.debug("Szoba név: " + name.get());
+        while(name.get() == null)
+            Main.getClientData().getInputManager().getInput("Szoba neve > ", s -> {
+                Main.debug(s);
+                name.set(s);
+            }, exit);
+
+
+        AtomicReference<String> maxMembersString = new AtomicReference<String>();
+        do { Main.getClientData().getInputManager().getInput("Maximum felhasználók > ", maxMembersString::set, exit); }
+        while (!isNull(maxMembersString.get()) && !maxMembersString.get().matches("^[0-9]+$"));
 
         int maxMembers = -1;
-        if(!isNull(maxMembersString))
-            maxMembers = Math.max(-1, Integer.parseInt(maxMembersString));
+        if(!isNull(maxMembersString.get()))
+            maxMembers = Math.max(-1, Integer.parseInt(maxMembersString.get()));
 
-        String password = null;
-        do { Main.getClientData().getInputManager().getInput("Jelszó > "); }
-        while (!isNull(password) && !password.matches("^[!-~]+$"));
+        AtomicReference<String> password = new AtomicReference<String>();
+        do { Main.getClientData().getInputManager().getInput("Jelszó > ", password::set, exit); }
+        while (!isNull(password.get()) && !password.get().matches("^[!-~]+$"));
 
         // create room
-        CreateRoomPacket packet = new CreateRoomPacket(name, password, maxMembers);
+        CreateRoomPacket packet = new CreateRoomPacket(name.get(), password.get(), maxMembers);
         Main.getClient().sendPacket(packet);
     }
 

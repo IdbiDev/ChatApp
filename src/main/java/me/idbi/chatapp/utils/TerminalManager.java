@@ -3,6 +3,7 @@ package me.idbi.chatapp.utils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.Synchronized;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.events.clients.ClientTerminalResizeEvent;
 import me.idbi.chatapp.messages.ClientMessage;
@@ -22,8 +23,10 @@ import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.NonBlockingReader;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class TerminalManager {
     @Getter
@@ -310,7 +313,10 @@ public class TerminalManager {
 
         public KeyboardListener(TerminalManager terminal) {
             this.terminal = terminal;
-            this.buffer = "";
+            this.chatBuffer = "";
+            this.inputBuffer = "";
+            this.inputPrompt = "";
+
         }
 
         @Override
@@ -377,72 +383,108 @@ public class TerminalManager {
                             }
                         }
                     }
-                    switch (key) {
-                        case 13: // Enter
-                            if (Main.getClientData().getTableManager().getCurrentTable() != null && Main.getClientData().getViewManager().getView() != null) {
-                                if (Main.getClientData().getViewManager().getView() instanceof RoomListView) {
-                                    if (Main.getClientData().getTableManager().getCurrentTable().getSelectedRow() == null) {
-                                        break;
-                                    }
-                                    String selectedRoomName = Main.getClientData().getTableManager().getCurrentTable().getSelectedRow().getLine();
-                                    if(selectedRoomName.equals("Szoba készítés")) {
-                                        Main.getClientData().getViewManager().setView(ViewType.ROOM_CREATE);
-                                        break;
-                                    }
-                                    Room selectedRoom = Main.getClientData().getRooms()
-                                            .values()
-                                            .stream()
-                                            .filter(rm -> rm.getName().equalsIgnoreCase(selectedRoomName))
-                                            .findAny()
-                                            .orElse(null);
-                                    if (selectedRoom == null) break;
-                                    if (!selectedRoom.hasPassword()) {
-                                        Main.getClient().sendPacket(new RoomJoinPacket(selectedRoom.getUniqueId(), selectedRoom.getPassword()));
-                                    } else {
-                                        ((RoomJoinView) ViewType.ROOM_JOIN.getView()).setRoom(selectedRoom);
-                                        Main.getClientData().getViewManager().setView(ViewType.ROOM_JOIN);
+                    if(this.terminal.inputMode) {
+                        Main.debug("READING FROM INPUT in2 " + key);
+                        switch (key) {
+                            case 13: // Enter
+                                this.terminal.inputMode = false;
+                                this.inputBuffer = "";
+                                break;
+                            case 27: // escap
+                                this.terminal.inputMode = false;
+                                this.inputBuffer = "";
+                                break;
+                            case 8: // Backspace
+                                if (this.inputBuffer.isEmpty()) continue;
+                                this.inputBuffer = this.inputBuffer.substring(0, this.inputBuffer.length() - 1);
+                                Main.getClientData().getTerminalManager().clearLine();
+                                //Main.getClientData().refreshBuffer();
+                                //System.out.print(" ");
+                                //Main.getClientData().getTerminalManager().moveCursorLeft(1);
+
+                                break;
+                            default:
+                                if(this.inputPrompt.length() + this.inputBuffer.length() > this.terminal.getWidth() - 1) {
+                                    Main.debug("XDDD");
+                                    continue;
+                                }
+                                this.inputBuffer += (char) key;/* += (char) key;*/
+                                Main.debug("Got cica" + this.inputBuffer);
+                                //Main.getClientData().refreshBuffer();
+                                break;
+                        }
+                    } else {
+                        Main.debug("key: " + key);
+                        switch (key) {
+                            case 13: // Enter
+                                if (Main.getClientData().getTableManager().getCurrentTable() != null && Main.getClientData().getViewManager().getView() != null) {
+                                    if (Main.getClientData().getViewManager().getView() instanceof RoomListView) {
+                                        if (Main.getClientData().getTableManager().getCurrentTable().getSelectedRow() == null) {
+                                            break;
+                                        }
+                                        String selectedRoomName = Main.getClientData().getTableManager().getCurrentTable().getSelectedRow().getLine();
+                                        if (selectedRoomName.equals("Szoba készítés")) {
+                                            Main.getClientData().getViewManager().setView(ViewType.ROOM_CREATE);
+                                            break;
+                                        }
+                                        Room selectedRoom = Main.getClientData().getRooms()
+                                                .values()
+                                                .stream()
+                                                .filter(rm -> rm.getName().equalsIgnoreCase(selectedRoomName))
+                                                .findAny()
+                                                .orElse(null);
+                                        if (selectedRoom == null) break;
+                                        if (!selectedRoom.hasPassword()) {
+                                            Main.getClient().sendPacket(new RoomJoinPacket(selectedRoom.getUniqueId(), selectedRoom.getPassword()));
+                                        } else {
+                                            ((RoomJoinView) ViewType.ROOM_JOIN.getView()).setRoom(selectedRoom);
+                                            Main.getClientData().getViewManager().setView(ViewType.ROOM_JOIN);
+                                        }
                                     }
                                 }
-                            }
-                            //Main.debug(Main.getClient().getName() + " > " + buffer);
-                            if(Main.getClientData().getViewManager().getView() instanceof RoomChatView) {
-                                if(this.buffer.isEmpty() || this.buffer.isBlank()) continue;
-                                Main.getClient().sendPacket(new SendMessageToServerPacket(new ClientMessage(Main.getClient().getName(), Main.getClientData().getCurrentRoom(), buffer.strip())));
-                                buffer = "";
+                                //Main.debug(Main.getClient().getName() + " > " + buffer);
+                                if (Main.getClientData().getViewManager().getView() instanceof RoomChatView) {
+                                    if (this.chatBuffer.isEmpty() || this.chatBuffer.isBlank()) continue;
+                                    Main.getClient().sendPacket(new SendMessageToServerPacket(new ClientMessage(Main.getClient().getName(), Main.getClientData().getCurrentRoom(), chatBuffer.strip())));
+                                    chatBuffer = "";
+                                    Main.getClientData().getTerminalManager().clearLine();
+                                    Main.getClientData().refreshBuffer();
+                                }
+                                break;
+                            case 27: // escap
+                                if (Main.getClientData().getViewManager().getView() instanceof RoomJoinView) {
+                                    chatBuffer = "";
+                                    this.terminal.canWrite = false;
+                                    Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
+                                }
+                                break;
+                            case 8: // Backspace
+                                if (!terminal.isCanWrite()) {
+                                    continue;
+                                }
+                                if (chatBuffer.isEmpty()) continue;
+                                chatBuffer = chatBuffer.substring(0, chatBuffer.length() - 1);
                                 Main.getClientData().getTerminalManager().clearLine();
                                 Main.getClientData().refreshBuffer();
-                            }
-                            break;
-                        case 27: // escap
-                            if (Main.getClientData().getViewManager().getView() instanceof RoomJoinView) {
-                                buffer = "";
-                                this.terminal.canWrite = false;
-                                Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
-                            }
-                            break;
-                        case 8: // Backspace
-                            if (!terminal.isCanWrite()) {
-                                continue;
-                            }
-                            if (buffer.isEmpty()) continue;
-                            buffer = buffer.substring(0, buffer.length() - 1);
-                            Main.getClientData().getTerminalManager().clearLine();
-                            Main.getClientData().refreshBuffer();
-                            //System.out.print(" ");
-                            //Main.getClientData().getTerminalManager().moveCursorLeft(1);
+                                //System.out.print(" ");
+                                //Main.getClientData().getTerminalManager().moveCursorLeft(1);
 
-                            break;
-                        default:
-                            if (!terminal.isCanWrite()) {
-                                continue;
-                            }
-                            if((Main.getClient().getName() + " > ").length() + buffer.length() > terminal.getWidth()-1) {
-                                continue;
-                            }
-                            buffer += (char) key;
-                            Main.getClientData().refreshBuffer();
-                            //Main.debug(String.valueOf((char) key));
-                            break;
+                                break;
+                            default:
+                                Main.debug("2");
+                                if (!terminal.isCanWrite()) {
+                                    continue;
+                                }
+                                if ((Main.getClient().getName() + " > ").length() + chatBuffer.length() > terminal.getWidth() - 1) {
+                                    Main.debug("4");
+                                    continue;
+                                }
+                                Main.debug("5");
+                                chatBuffer += (char) key;
+                                Main.getClientData().refreshBuffer();
+                                //Main.debug(String.valueOf((char) key));
+                                break;
+                        }
                     }
                 } catch (IOException e) {
                     Main.debug(e.getMessage());

@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class RoomJoinView implements IView {
     @Setter private Room room;
@@ -27,7 +28,7 @@ public class RoomJoinView implements IView {
 
     @Override
     public boolean hasThread() {
-        return false;
+        return true;
     }
 
     @Override
@@ -42,8 +43,9 @@ public class RoomJoinView implements IView {
 
     @Override
     public void start() {
-        String pw =  Main.getClientData().getInputManager().getInput("Jelszó > ");
-        if(pw.equalsIgnoreCase("cancel") || pw.equalsIgnoreCase("back")) {
+        AtomicReference<String> pw = new AtomicReference<>();
+        Main.getClientData().getInputManager().getInput("Jelszó > ", pw::set, () -> Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST));
+        if(pw.get().equalsIgnoreCase("cancel") || pw.get().equalsIgnoreCase("back")) {
             Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
             return;
         }
