@@ -51,14 +51,14 @@ public class SystemMessage implements IMessage, Serializable {
         this.room = room;
         this.message = message;
         this.date = date;
-        this.expireTime = expireTime;
+        this.expireTime = expireTime + date.getTime();
     }
 
     public SystemMessage(Room room, String message, long expireTime) {
         this.room = room;
         this.message = message;
-        this.expireTime = expireTime;
         this.date = new Date();
+        this.expireTime = expireTime + this.date.getTime();
     }
 
     @Override

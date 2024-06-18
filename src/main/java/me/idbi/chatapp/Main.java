@@ -1,5 +1,6 @@
 package me.idbi.chatapp;
 
+import dorkbox.notify.Notify;
 import lombok.Getter;
 import me.idbi.chatapp.eventmanagers.EventManager;
 import me.idbi.chatapp.eventmanagers.interfaces.Listener;

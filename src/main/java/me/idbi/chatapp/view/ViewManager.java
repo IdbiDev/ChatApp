@@ -3,6 +3,7 @@ package me.idbi.chatapp.view;
 import lombok.Getter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.utils.TerminalManager;
+import me.idbi.chatapp.view.viewmenus.RoomListView;
 
 import java.io.IOException;
 
@@ -11,7 +12,6 @@ public class ViewManager {
 
     private IView view;
     private Thread thread;
-    private boolean refresh;
 
     public ViewManager() {
         this.view = null;
@@ -60,9 +60,7 @@ public class ViewManager {
             this.view.update();
             try {
                 Thread.sleep(this.view.getUpdateInterval());
-            } catch (InterruptedException ignored) {
-
-            }
+            } catch (InterruptedException ignored) {}
         }
     }
 

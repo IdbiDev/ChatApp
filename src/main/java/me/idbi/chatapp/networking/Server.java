@@ -1,16 +1,15 @@
 package me.idbi.chatapp.networking;
 
 import lombok.Getter;
-import me.idbi.chatapp.events.servers.ServerClientDisconnectEvent;
-import me.idbi.chatapp.events.servers.ServerReceiveMessageEvent;
-import me.idbi.chatapp.events.servers.ServerRoomJoinEvent;
-import me.idbi.chatapp.events.servers.ServerStartEvent;
+import me.idbi.chatapp.Main;
+import me.idbi.chatapp.events.servers.*;
 import me.idbi.chatapp.messages.SystemMessage;
 import me.idbi.chatapp.packets.ServerPacket;
 import me.idbi.chatapp.packets.client.*;
 import me.idbi.chatapp.packets.server.*;
 import me.idbi.chatapp.utils.RoomJoinResult;
 import me.idbi.chatapp.utils.TerminalManager;
+import me.idbi.chatapp.view.viewmenus.RoomCreateView;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -175,12 +174,12 @@ public class Server {
                                 result = RoomJoinResult.INVALID_ROOM;
                             }
 
-                            if(selectedRoom != null && !Objects.equals(selectedRoom.getPassword(), packet.getPassword())) {
+                            if(selectedRoom != null && selectedRoom.hasPassword() && !Objects.equals(selectedRoom.getPassword(), packet.getPassword())) {
                                 result = RoomJoinResult.WRONG_PASSWORD;
                                 //sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.WRONG_PASSWORD, selectedRoom));
                             }
 
-                            if (selectedRoom != null && selectedRoom.getMembers().size() >= selectedRoom.getMaxMembers()) {
+                            if (selectedRoom != null && selectedRoom.isFull()) {
                                 result = RoomJoinResult.ROOM_FULL;
                                 //sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.ROOM_FULL, selectedRoom));
                             }
@@ -238,23 +237,33 @@ public class Server {
                                 }
 
                             }
-                        }else if (packetObject instanceof CreateRoomPacket packet) {
-                            Room newRoom = new Room(UUID.randomUUID(),packet.getName(),entry.getValue(),packet.getPassword(),new ArrayList<>(),packet.getMaxMembers(),new ArrayList<>());
-                            this.rooms.put(newRoom.getUniqueId(), newRoom);
+                        } else if (packetObject instanceof CreateRoomPacket packet) {
+                            Room newRoom = new Room(UUID.randomUUID(), packet.getName(), entry.getValue(), packet.getPassword(), new ArrayList<>(), packet.getMaxMembers(), new ArrayList<>());
+                            ServerRoomCreateEvent event = new ServerRoomCreateEvent(newRoom);
+                            if (event.callEvent()) {
+                                newRoom = event.getRoom();
 
-                            newRoom.addMember(entry.getValue());
-                            SystemMessage msg = new SystemMessage(newRoom, TerminalManager.Color.GREEN.getCode() + SystemMessage.MessageType.ROOM_CREATE.setRoom(newRoom.getName()) + TerminalManager.Color.RESET, new Date(), 1);
-                            newRoom.getMessages().add(msg);
-                            sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.SUCCESS, newRoom, new Date()));
-                            for (Map.Entry<Socket, Member> socketMemberEntry : this.sockets.entrySet()) {
-                                sendPacket(socketMemberEntry.getKey(), new ReceiveRefreshPacket(this.rooms));
+                                this.rooms.put(newRoom.getUniqueId(), newRoom);
+                                entry.getValue().getRooms().add(newRoom);
+
+                                newRoom.addMember(entry.getValue());
+
+
+                                SystemMessage msg = new SystemMessage(newRoom, TerminalManager.Color.GREEN.getCode() + SystemMessage.MessageType.ROOM_CREATE.setRoom(newRoom.getName()) + TerminalManager.Color.RESET, new Date(), 1);
+                                newRoom.getMessages().add(msg);
+
+                                sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.SUCCESS, newRoom, new Date()));
+
+                                for (Map.Entry<Socket, Member> socketMemberEntry : this.sockets.entrySet()) {
+                                    sendPacket(socketMemberEntry.getKey(), new ReceiveRefreshPacket(this.rooms));
+                                }
                             }
                         }
                     }
-                } catch (IOException | ClassNotFoundException e) {
+                } catch (IOException | ClassNotFoundException | ClassCastException e) {
                     System.out.println("ERROR while reading!");
                     try {
-                        sendPacket(socket,new ShutdownPacket());
+                        sendPacket(socket, new ShutdownPacket());
                         clientInputStreams.get(socket).close();
 
                         sockets.remove(socket);

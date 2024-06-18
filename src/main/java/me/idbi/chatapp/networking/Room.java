@@ -23,8 +23,12 @@ public class Room implements Serializable {
     private int maxMembers;
     private List<IMessage> messages;
 
+    public boolean isFull() {
+        return this.maxMembers != -1 && this.maxMembers >= this.members.size();
+    }
+
     public boolean hasPassword() {
-        return this.password != null;
+        return this.password != null && !this.password.isBlank();
     }
 
     public void removeMember(Member member) {

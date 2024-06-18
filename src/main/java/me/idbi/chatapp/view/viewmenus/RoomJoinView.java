@@ -3,6 +3,7 @@ package me.idbi.chatapp.view.viewmenus;
 import lombok.Setter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.networking.Room;
+import me.idbi.chatapp.packets.client.RequestRefreshPacket;
 import me.idbi.chatapp.packets.client.RoomJoinPacket;
 import me.idbi.chatapp.view.IView;
 import me.idbi.chatapp.view.ViewType;
@@ -45,7 +46,15 @@ public class RoomJoinView implements IView {
     public void start() {
         AtomicReference<String> pw = new AtomicReference<>();
         Main.getClientData().getInputManager().getInput("Jelszó > ", pw::set, () -> Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST));
+        if(pw.get() == null) {
+            Main.getClientData().getTerminalManager().clear();
+            Main.getClient().sendPacket(new RequestRefreshPacket());
+            Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
+            return;
+        }
         if(pw.get().equalsIgnoreCase("cancel") || pw.get().equalsIgnoreCase("back")) {
+            Main.getClientData().getTerminalManager().clear();
+            Main.getClient().sendPacket(new RequestRefreshPacket());
             Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
             return;
         }

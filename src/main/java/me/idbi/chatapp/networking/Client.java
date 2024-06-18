@@ -17,7 +17,6 @@ import me.idbi.chatapp.view.ViewType;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Date;
 
 public class Client {
 
@@ -112,8 +111,8 @@ public class Client {
                         Object packetObject = client.in.readObject();
 
                         if (packetObject instanceof LoginPacket packet) {
-                            Main.getClientData().setClientMember(packet.getLoginedMember());
-                            new ClientLoginEvent(packet.getLoginedMember()).callEvent();
+                            Main.getClientData().setClientMember(packet.getLoginMember());
+                            new ClientLoginEvent(packet.getLoginMember()).callEvent();
                         } else if (packetObject instanceof ReceiveRefreshPacket packet) {
                             new ClientRefreshEvent(packet.getRooms()).callEvent();
                         } else if (packetObject instanceof RoomJoinResultPacket packet) {
