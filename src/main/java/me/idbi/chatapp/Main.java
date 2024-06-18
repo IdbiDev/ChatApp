@@ -34,8 +34,14 @@ public class Main implements Listener {
     @Getter private static Client client;
     @Getter private static int scrollState = 0;
 
-    public static void debug(String message) {
-        Main.getClient().sendPacket(new DebugMessagePacket(message));
+    public static void debug(String message)
+    {
+        try{
+            Main.getClient().sendPacket(new DebugMessagePacket(message));
+        }catch(Exception ex){
+
+        }
+
     }
     public static void debugFile(String message) {
         try {

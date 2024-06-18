@@ -49,7 +49,7 @@ public class RoomJoinView implements IView {
             Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
             return;
         }
-        Main.getClient().sendPacket(new RoomJoinPacket(this.room.getUniqueId(), pw));
+        Main.getClient().sendPacket(new RoomJoinPacket(this.room.getUniqueId(), pw.get()));
     }
 
     @Override

@@ -35,6 +35,8 @@ public class TerminalManager {
     @Setter
     private boolean canWrite = true;
     @Getter
+    private boolean inputMode = false;
+    @Getter
     private final KeyboardListener keyboardListener;
     @Getter
     private final Thread keyboardThread;
@@ -308,8 +310,15 @@ public class TerminalManager {
     public static class KeyboardListener implements Runnable {
 
         private final TerminalManager terminal;
-        @Getter @Setter
-        private String buffer;
+        /**
+         * Only for the CHATVIEW!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+         */
+        @Setter @Getter
+        private volatile String chatBuffer;
+        @Setter @Getter
+        private String inputBuffer;
+        @Setter @Getter
+        private volatile String inputPrompt;
 
         public KeyboardListener(TerminalManager terminal) {
             this.terminal = terminal;
@@ -323,9 +332,9 @@ public class TerminalManager {
         public void run() {
             NonBlockingReader nonBlockingReader = terminal.getTerminal().reader();
             while (true) {
+
                 try {
                     int key = nonBlockingReader.read();
-
                     if (key == 27) {
                         int next_byte = nonBlockingReader.read();
                         if (next_byte == 79) {
@@ -487,6 +496,7 @@ public class TerminalManager {
                         }
                     }
                 } catch (IOException e) {
+                    Main.debug("3");
                     Main.debug(e.getMessage());
                     //throw new RuntimeException(e);
                 }
