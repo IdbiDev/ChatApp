@@ -22,7 +22,7 @@ public class ViewManager {
         setView(view);
     }
 
-    public void setView(IView view) {
+    public IView setView(IView view) {
         this.view = view;
 
         if (view.isCursor()) Main.getClientData().getTerminalManager().showCursor();
@@ -36,13 +36,14 @@ public class ViewManager {
         if (view.hasThread()) {
             this.thread = new Thread(this::startUpdater);
             this.thread.start();
-            return;
+            return view;
         }
         startUpdater();
+        return view;
     }
 
-    public void setView(ViewType type) {
-        setView(type.getView());
+    public IView setView(ViewType type) {
+        return setView(type.getView());
     }
 
     public void startUpdater() {

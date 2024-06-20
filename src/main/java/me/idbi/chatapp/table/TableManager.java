@@ -19,8 +19,9 @@ public class TableManager {
             this.header.refreshWidth();
             this.header.getTable().values().forEach(System.out::println);
         }
-        if(table != null)
+        if(table != null) {
             table.getTable().values().forEach(System.out::println);
+        }
     }
 
     public void nextDown() {

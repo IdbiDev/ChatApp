@@ -14,6 +14,7 @@ public enum ViewType {
     ROOM_CHAT(new RoomChatView()),
     SERVER_SHUTDOWN(new ShutdownView()),
     ROOM_CREATE(new RoomCreateView()),
+    ROOM_CREATE_CONFIRM(new RoomCreateConfirmView()),
     ROOM_LIST(new RoomListView());
 
     private final IView view;

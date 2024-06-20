@@ -22,7 +22,6 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.NonBlockingReader;
 
-import javax.print.attribute.standard.MediaSize;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -173,7 +172,6 @@ public class TerminalManager {
 
     public void clear() {
         try {
-
             if (isWindows) {
 
                 new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
@@ -310,27 +308,20 @@ public class TerminalManager {
         @Getter
         public static enum KeyboardButtons {
             OTHER(),
-            BACKSPACE(List.of(8), List.of(8)),
-            ENTER(List.of(13), List.of(13)),
-            ESCAPE(List.of(27), List.of(27)),
-            PAGE_UP(List.of(27, 91, 53, 126), List.of(27, 91, 53, 126)),
-            PAGE_DOWN(List.of(27, 91, 54, 126), List.of(27, 91, 54, 126)),
-            ARROW_LEFT(List.of(27, 79, 68), List.of(27, 79, 68)),
-            ARROW_RIGHT(List.of(27, 79, 67), List.of(27, 79, 67)),
-            ARROW_UP(List.of(27, 79, 65), List.of(27, 79, 65)),
-            ARROW_DOWN(List.of(27, 79, 66), List.of(27, 79, 66));
+            BACKSPACE(8),
+            ENTER(13),
+            ESCAPE(27),
+            PAGE_UP(27, 91, 53, 126),
+            PAGE_DOWN(27, 91, 54, 126),
+            ARROW_LEFT(27, 79, 68),
+            ARROW_RIGHT(27, 79, 67),
+            ARROW_UP(27, 79, 65),
+            ARROW_DOWN(27, 79, 66);
 
-            private final List<Integer> windowsKeys;
-            private final List<Integer> linuxKeys;
+            private final List<Integer> keys;
 
             KeyboardButtons(Integer... keys) {
-                this.windowsKeys = Arrays.asList(keys);
-                this.linuxKeys = new ArrayList<>();
-            }
-
-            KeyboardButtons(List<Integer> windowsKeys, List<Integer> linuxKeys) {
-                this.windowsKeys = windowsKeys;
-                this.linuxKeys = linuxKeys;
+                this.keys = Arrays.asList(keys);
             }
         }
 
@@ -364,27 +355,19 @@ public class TerminalManager {
                 }
                 try {
                     List<Integer> keys = new ArrayList<>();
-                    long start = System.currentTimeMillis();
                     while (nonBlockingReader.available() > 0) {
                         keys.add(nonBlockingReader.read());
                     }
 
                     if(keys.isEmpty()) continue;
 
-                    Main.debug(keys + "");
-
-                    String lastButton = null;
+                    String lastButton = ((char) (int) keys.get(0)) + "";
                     KeyboardButtons button = KeyboardButtons.OTHER;
                     for (KeyboardButtons value : KeyboardButtons.values()) {
-                        if(this.terminal.isWindows)
-                            if (!keys.equals(value.getWindowsKeys())) continue;
-                        else
-                            if (!keys.equals(value.getLinuxKeys())) continue;
+                        if (!keys.equals(value.getKeys())) continue;
 
                         button = value;
-                        lastButton = ((char) ((int) keys.get(0))) + "";
                     }
-                    Main.debug(System.currentTimeMillis() - start + "ms");
 
                     switch (button) {
                         case ESCAPE: {
@@ -479,7 +462,6 @@ public class TerminalManager {
                         }
                         case ARROW_UP: {
                             if (Main.getClientData().getViewManager().getView() instanceof IView.Tableable) {
-                                Main.debug("ARROW UP");
                                 Main.getClientData().getTableManager().nextUp();
                             } else if (Main.getClientData().getViewManager().getView() instanceof RoomChatView) {
 
@@ -488,7 +470,6 @@ public class TerminalManager {
                         }
                         case ARROW_DOWN: {
                             if (Main.getClientData().getViewManager().getView() instanceof IView.Tableable) {
-                                Main.debug("ARROW DOWN");
                                 Main.getClientData().getTableManager().nextDown();
                             } else if (Main.getClientData().getViewManager().getView() instanceof RoomChatView) {
 
@@ -496,7 +477,6 @@ public class TerminalManager {
                             break;
                         }
                         case OTHER: {
-                            if(lastButton == null) break;
                             if(this.inputMode) {
                                 if(this.inputPrompt.length() + this.inputBuffer.length() > this.terminal.getWidth() - 1) break;
                                 this.inputBuffer += lastButton;
