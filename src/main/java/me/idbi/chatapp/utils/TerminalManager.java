@@ -16,6 +16,7 @@ import me.idbi.chatapp.packets.client.SendMessageToServerPacket;
 import me.idbi.chatapp.view.IView;
 import me.idbi.chatapp.view.ViewType;
 import me.idbi.chatapp.view.viewmenus.RoomChatView;
+import me.idbi.chatapp.view.viewmenus.RoomCreateConfirmView;
 import me.idbi.chatapp.view.viewmenus.RoomJoinView;
 import me.idbi.chatapp.view.viewmenus.RoomListView;
 import org.jline.terminal.Terminal;
@@ -171,6 +172,7 @@ public class TerminalManager {
     }
 
     public void clear() {
+        Main.debug("Clear called");
         try {
             if (isWindows) {
 
@@ -178,8 +180,7 @@ public class TerminalManager {
             } else {
                 new ProcessBuilder("clear").inheritIO().start().waitFor();
             }
-        } catch (final Exception e) {
-            e.printStackTrace();
+        } catch (final Exception ignored) {
             //  Handle any exceptions.
         }
     }
@@ -263,7 +264,7 @@ public class TerminalManager {
         System.out.println(System.getProperty("os.name") + isWindows);
         clear();
         System.out.print(Cursor.HOME);
-        terminal.enterRawMode();
+          terminal.enterRawMode();
         this.keyboardListener = new KeyboardListener(this);
         keyboardThread = new Thread(this.keyboardListener);
         keyboardThread.start();
@@ -349,9 +350,8 @@ public class TerminalManager {
             NonBlockingReader nonBlockingReader = terminal.getTerminal().reader();
             while (true) {
                 try {
-                    Thread.sleep(1);
+                    Thread.sleep(0,750);
                 } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
                 }
                 try {
                     List<Integer> keys = new ArrayList<>();
@@ -438,6 +438,11 @@ public class TerminalManager {
                                     this.chatBuffer = "";
                                     Main.getClientData().getTerminalManager().clearLine();
                                     Main.getClientData().refreshBuffer();
+                                }
+
+                                if (Main.getClientData().getViewManager().getView() instanceof RoomCreateConfirmView) {
+                                    String row = Main.getClientData().getTableManager().getCurrentTable().getSelectedRow().getLine();
+                                    Main.debug(row);
                                 }
                             }
                             break;

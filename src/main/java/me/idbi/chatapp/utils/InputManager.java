@@ -7,8 +7,9 @@ import java.util.function.Consumer;
 public class InputManager {
 
     public void getInput(String text, Consumer<String> consumer, Runnable exit) {
-        Main.getClientData().getTerminalManager().getKeyboardListener().setInputMode(true);
-        Main.getClientData().getTerminalManager().getKeyboardListener().setInputPrompt("");
+        try {
+            Main.getClientData().getTerminalManager().getKeyboardListener().setInputMode(true);
+            Main.getClientData().getTerminalManager().getKeyboardListener().setInputPrompt("");
 
             Main.getClientData().getTerminalManager().clearLine();
             while (Main.getClientData().getTerminalManager().getKeyboardListener().isInputMode()) {

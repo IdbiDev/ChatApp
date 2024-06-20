@@ -78,9 +78,17 @@ public class RoomCreateView implements IView {
         while (!isNull(password.get()) && !password.get().matches("^[!-~]+$"));
 
         if(exitBoolean.get()) return;
+
         // create room
         CreateRoomPacket packet = new CreateRoomPacket(name.get(), password.get(), maxMembers);
-        Main.getClient().sendPacket(packet);
+        Main.debug(packet.toString());
+        RoomCreateConfirmView view = (RoomCreateConfirmView) ViewType.ROOM_CREATE_CONFIRM.getView();
+        Main.debug("view dobne");
+        view.setPacket(packet);
+        Main.debug("Packed sent");
+        Main.getClientData().getViewManager().setView(view);
+
+        //Main.getClient().sendPacket(packet);
     }
 
     @Override
