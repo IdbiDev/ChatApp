@@ -172,7 +172,6 @@ public class TerminalManager {
     }
 
     public void clear() {
-        Main.debug("Clear called");
         try {
             if (isWindows) {
 
@@ -377,8 +376,8 @@ public class TerminalManager {
                             } else if (Main.getClientData().getViewManager().getView() instanceof RoomJoinView) {
                                 this.chatBuffer = "";
                                 this.terminal.canWrite = false;
-                                Main.getClient().sendPacket(new RequestRefreshPacket());
                                 Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
+                                Main.getClientData().getViewManager().refresh();
                             }
                             break;
                         }
@@ -440,9 +439,23 @@ public class TerminalManager {
                                     Main.getClientData().refreshBuffer();
                                 }
 
-                                if (Main.getClientData().getViewManager().getView() instanceof RoomCreateConfirmView) {
+                                if (Main.getClientData().getViewManager().getView() instanceof RoomCreateConfirmView view) {
                                     String row = Main.getClientData().getTableManager().getCurrentTable().getSelectedRow().getLine();
-                                    Main.debug(row);
+                                    switch (row) {
+                                        case "Megerősítés": {
+                                            Main.getClient().sendPacket(view.getPacket());
+                                            break;
+                                        }
+                                        case "Szerkesztés": {
+                                            Main.getClientData().getViewManager().setView(ViewType.ROOM_CREATE);
+                                            break;
+                                        }
+                                        case "Mégse": {
+                                            Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
+                                            Main.getClientData().getViewManager().refresh();
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                             break;

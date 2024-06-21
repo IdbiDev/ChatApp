@@ -1,6 +1,7 @@
 package me.idbi.chatapp.view.viewmenus;
 
 import dorkbox.util.Sys;
+import lombok.Getter;
 import lombok.Setter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.networking.Room;
@@ -14,6 +15,7 @@ import me.idbi.chatapp.view.ViewType;
 
 @Setter
 public class RoomCreateConfirmView implements IView, IView.Tableable {
+    @Getter
     private CreateRoomPacket packet;
 
 
@@ -44,11 +46,11 @@ public class RoomCreateConfirmView implements IView, IView.Tableable {
 
     @Override
     public void start() {
-        Column name = new Column();
+        Column name = new Column(20);
         name.addRow(new Row("Név", false, false, Row.Aligment.CENTER));
         name.addRow(new Row(packet.getName(), false, false));
 
-        Column infos = new Column(20);
+        Column infos = new Column(10);
         infos.addRow(new Row("Információk", false, false, Row.Aligment.CENTER));
         infos.addRow(new Row(packet.getMaxMembers() + "", false, false, Row.Aligment.CENTER));
 
@@ -69,7 +71,7 @@ public class RoomCreateConfirmView implements IView, IView.Tableable {
 
         Table manageTable = new Table();
         Column manageColumn = new Column(20);
-        manageColumn.addRow(new Row("Kezelés", true, true, Row.Aligment.CENTER));
+        manageColumn.addRow(new Row("Kezelés", false, false, Row.Aligment.CENTER));
         manageColumn.addRow(new Row("Megerősítés", true, true, Row.Aligment.LEFT));
         manageColumn.addRow(new Row("Szerkesztés", true, false, Row.Aligment.LEFT));
         manageColumn.addRow(new Row("Mégse", true, false, Row.Aligment.LEFT));

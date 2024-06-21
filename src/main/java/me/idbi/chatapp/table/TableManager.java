@@ -15,10 +15,18 @@ public class TableManager {
     public void setTable(Table table) {
         this.currentTable = table;
         Main.getClientData().getTerminalManager().clear();
+
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            //throw new RuntimeException(e);
+        }
+
         if(this.header != null) {
             this.header.refreshWidth();
             this.header.getTable().values().forEach(System.out::println);
         }
+
         if(table != null) {
             table.getTable().values().forEach(System.out::println);
         }
