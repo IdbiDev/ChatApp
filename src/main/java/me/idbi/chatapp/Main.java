@@ -1,6 +1,9 @@
 package me.idbi.chatapp;
 
+import dorkbox.notify.Notify;
 import lombok.Getter;
+import me.idbi.chatapp.commands.CommandManager;
+import me.idbi.chatapp.commands.chatcommands.LeaveCommand;
 import me.idbi.chatapp.eventmanagers.EventManager;
 import me.idbi.chatapp.eventmanagers.interfaces.Listener;
 import me.idbi.chatapp.networking.Client;
@@ -15,6 +18,7 @@ import org.jline.utils.NonBlockingReader;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.Scanner;
 
 /*
     Todo: Kérdések mr sósmogyorónak or patrik :3:
@@ -29,12 +33,20 @@ public class Main implements Listener {
     @Getter private static SimpleDateFormat messageDateFormat;
 
     @Getter private static ClientData clientData;
+    @Getter private static CommandManager commandManager;
     @Getter private static EventManager eventManager;
     @Getter private static Client client;
     @Getter private static int scrollState = 0;
+    @Getter private static Server server;
 
-    public static void debug(String message) {
-        Main.getClient().sendPacket(new DebugMessagePacket(message));
+    public static void debug(String message)
+    {
+        try{
+            Main.getClient().sendPacket(new DebugMessagePacket(message));
+        }catch(Exception ex){
+
+        }
+
     }
     public static void debugFile(String message) {
         try {
@@ -47,7 +59,6 @@ public class Main implements Listener {
     }
     // Server //
     public static void main(String[] args) throws IOException, InterruptedException {
-
 //        Terminal terminal = TerminalBuilder.terminal();
 //        terminal.enterRawMode();
 //        NonBlockingReader nonBlockingReader = terminal.reader();
@@ -103,6 +114,7 @@ public class Main implements Listener {
 
 
         eventManager = new EventManager();
+        commandManager = new CommandManager();
         messageDateFormat = new SimpleDateFormat("MM.dd HH:mm:ss");
         if (args.length >= 1) {
             if (cmd.hasOption("c")) {
@@ -115,8 +127,9 @@ public class Main implements Listener {
 
                 clientData.getViewManager().setView(ViewType.LOGIN);
             } else if (cmd.hasOption("s")) {
-                Server server = new Server(port);
-
+                commandManager.registerCommand("leave", new LeaveCommand());
+                server = new Server(port);
+                server.serverLoop();
             }
         }
     }

@@ -46,13 +46,21 @@ public class ClientRoomJoinEvent extends Event implements Cancellable {
             System.out.println("Cancellelve a room join");
             return false;
         } else {
-            if(result != RoomJoinResult.SUCCESS) {
-                Main.getClientData().getViewManager().setView(ViewType.ROOM_JOIN);
+            if(this.result != RoomJoinResult.SUCCESS) {
+                if(this.result == RoomJoinResult.WRONG_PASSWORD) {
+                    Main.getClientData().getViewManager().setView(ViewType.ROOM_JOIN);
+                } else if(this.result == RoomJoinResult.ROOM_FULL) {
+                    Main.getClientData().getNotificationManager().info("Sikertelen csatlakozás", "A szoba megtelt");
+                } else if(this.result == RoomJoinResult.CANCELLED) {
+                    Main.getClientData().getNotificationManager().info("Sikertelen csatlakozás", "A csatlakozás megszakítva");
+                } else if(this.result == RoomJoinResult.INVALID_ROOM) {
+                    Main.getClientData().getNotificationManager().info("Sikertelen csatlakozás", "Ismeretlen szoba");
+                }
                 //Main.getClientData().getViewManager().changeView(ViewType,
                 // 25448787.ROOM_LIST);
             } else {
                 Main.getClientData().getTerminalManager().clear();
-                Main.getClientData().setCurrentRoom(room, joinAt);
+                Main.getClientData().setCurrentRoom(this.room, this.joinAt);
 
                 Main.getClientData().getViewManager().setView(ViewType.ROOM_CHAT);
 

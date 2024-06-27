@@ -3,6 +3,7 @@ package me.idbi.chatapp.view;
 import lombok.Getter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.utils.TerminalManager;
+import me.idbi.chatapp.view.viewmenus.RoomListView;
 
 import java.io.IOException;
 
@@ -11,7 +12,6 @@ public class ViewManager {
 
     private IView view;
     private Thread thread;
-    private boolean refresh;
 
     public ViewManager() {
         this.view = null;
@@ -22,7 +22,7 @@ public class ViewManager {
         setView(view);
     }
 
-    public void setView(IView view) {
+    public IView setView(IView view) {
         this.view = view;
 
         if (view.isCursor()) Main.getClientData().getTerminalManager().showCursor();
@@ -36,13 +36,18 @@ public class ViewManager {
         if (view.hasThread()) {
             this.thread = new Thread(this::startUpdater);
             this.thread.start();
-            return;
+
+            if(this.view instanceof IView.Tableable) {
+                refresh();
+            }
+            return view;
         }
         startUpdater();
+        return view;
     }
 
-    public void setView(ViewType type) {
-        setView(type.getView());
+    public IView setView(ViewType type) {
+        return setView(type.getView());
     }
 
     public void startUpdater() {
@@ -60,9 +65,7 @@ public class ViewManager {
             this.view.update();
             try {
                 Thread.sleep(this.view.getUpdateInterval());
-            } catch (InterruptedException ignored) {
-
-            }
+            } catch (InterruptedException ignored) {}
         }
     }
 

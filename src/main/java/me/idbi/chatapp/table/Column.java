@@ -23,12 +23,14 @@ public class Column {
     public Column(Consumer<Column> column) {
         this.width = Math.max(1, width);
         this.columnWidth = column;
-        this.columnWidth.accept(this);
+        if(this.columnWidth != null)
+            this.columnWidth.accept(this);
         this.rows = new ArrayList<>();
     }
 
     public void refreshWidth() {
-        this.columnWidth.accept(this);
+        if(this.columnWidth != null)
+            this.columnWidth.accept(this);
     }
 
     public Column() {

@@ -1,19 +1,18 @@
 package me.idbi.chatapp.view.viewmenus;
 
-import lombok.Setter;
 import me.idbi.chatapp.Main;
-import me.idbi.chatapp.messages.SystemMessage;
-import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.packets.client.CreateRoomPacket;
-import me.idbi.chatapp.packets.client.RoomJoinPacket;
-import me.idbi.chatapp.packets.server.SendMessageToClientPacket;
-import me.idbi.chatapp.utils.TerminalManager;
+import me.idbi.chatapp.packets.client.RequestRefreshPacket;
+import me.idbi.chatapp.table.Row;
 import me.idbi.chatapp.view.IView;
 import me.idbi.chatapp.view.ViewType;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.UUID;
+import javax.management.InvalidAttributeValueException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class RoomCreateView implements IView {
 
@@ -28,7 +27,7 @@ public class RoomCreateView implements IView {
 
     @Override
     public boolean hasThread() {
-        return false;
+        return true;
     }
 
     @Override
@@ -43,26 +42,53 @@ public class RoomCreateView implements IView {
 
     @Override
     public void start() {
+        AtomicBoolean exitBoolean = new AtomicBoolean(false);
+        Runnable exit = () -> {
+            exitBoolean.set(true);
+            Main.getClientData().getTerminalManager().clear();
+            Main.getClient().sendPacket(new RequestRefreshPacket());
+            Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
+        };
+
         Main.getClientData().getTerminalManager().clear();
-        String name = null;
-        while(name == null)
-            name = Main.getClientData().getInputManager().getInput("Szoba neve > ");
+        AtomicReference<String> name = new AtomicReference<>();
+        while(name.get() == null) {
+            if(exitBoolean.get()) return;
+            Main.getClientData().getInputManager().getInput("Szoba neve > ", name::set, exit);
+        }
 
-        String maxMembersString = null;
-        do { Main.getClientData().getInputManager().getInput("Maximum felhasználók > "); }
-        while (!isNull(maxMembersString) && !maxMembersString.matches("^[0-9]+$"));
+        if(exitBoolean.get()) return;
+        AtomicReference<String> maxMembersString = new AtomicReference<>();
+        do {
+            if(exitBoolean.get()) return;
+            Main.getClientData().getInputManager().getInput("Maximum felhasználók > ", maxMembersString::set, exit);
+        }
+        while (!isNull(maxMembersString.get()) && !maxMembersString.get().matches("^[0-9]+$"));
 
+        if(exitBoolean.get()) return;
         int maxMembers = -1;
-        if(!isNull(maxMembersString))
-            maxMembers = Math.max(-1, Integer.parseInt(maxMembersString));
+        if(!isNull(maxMembersString.get()))
+            maxMembers = Math.max(-1, Integer.parseInt(maxMembersString.get()));
 
-        String password = null;
-        do { Main.getClientData().getInputManager().getInput("Jelszó > "); }
-        while (!isNull(password) && !password.matches("^[!-~]+$"));
+        AtomicReference<String> password = new AtomicReference<>();
+        do {
+            if(exitBoolean.get()) return;
+            Main.getClientData().getInputManager().getInput("Jelszó > ", password::set, exit);
+        }
+        while (!isNull(password.get()) && !password.get().matches("^[!-~]+$"));
+
+        if(exitBoolean.get()) return;
 
         // create room
-        CreateRoomPacket packet = new CreateRoomPacket(name, password, maxMembers);
-        Main.getClient().sendPacket(packet);
+        CreateRoomPacket packet = new CreateRoomPacket(name.get(), password.get(), maxMembers);
+        Main.debug(packet.toString());
+        RoomCreateConfirmView view = (RoomCreateConfirmView) ViewType.ROOM_CREATE_CONFIRM.getView();
+        Main.debug("view dobne");
+        view.setPacket(packet);
+        Main.debug("Packed sent");
+        Main.getClientData().getViewManager().setView(view);
+
+        //Main.getClient().sendPacket(packet);
     }
 
     @Override
@@ -71,6 +97,6 @@ public class RoomCreateView implements IView {
     }
 
     private boolean isNull(String text) {
-        return text.isEmpty() || text.isBlank();
+        return text == null || text.isEmpty() || text.isBlank();
     }
 }

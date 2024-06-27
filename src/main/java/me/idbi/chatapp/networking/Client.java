@@ -17,13 +17,13 @@ import me.idbi.chatapp.view.ViewType;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Date;
 
 public class Client {
 
     @Getter private Socket socket;
 
     private ClientListener listener;
+    private Thread threadlistener;
     @Getter @Setter
     private boolean canRun = true;
     @Getter private String host;
@@ -39,14 +39,24 @@ public class Client {
         this.name = System.getProperty("user.name");
 
     }
+
+    public void panic() throws IOException {
+        canRun = false;
+        out = null;
+        this.in = null;
+        this.threadlistener.interrupt();
+        this.socket.close();
+        this.socket = null;
+        connect();
+    }
     public boolean connect() {
         try {
             this.socket = new Socket(host, port); //server
             canRun = true;
             this.listener = new ClientListener(this);
-            Thread t = new Thread(this.listener);
+            threadlistener = new Thread(this.listener);
 
-            t.start();
+            threadlistener.start();
             ClientPacket packet = new HandshakePacket(this.name);
             sendPacket(packet);
             return true;
@@ -112,8 +122,8 @@ public class Client {
                         Object packetObject = client.in.readObject();
 
                         if (packetObject instanceof LoginPacket packet) {
-                            Main.getClientData().setClientMember(packet.getLoginedMember());
-                            new ClientLoginEvent(packet.getLoginedMember()).callEvent();
+                            Main.getClientData().setClientMember(packet.getLoginMember());
+                            new ClientLoginEvent(packet.getLoginMember()).callEvent();
                         } else if (packetObject instanceof ReceiveRefreshPacket packet) {
                             new ClientRefreshEvent(packet.getRooms()).callEvent();
                         } else if (packetObject instanceof RoomJoinResultPacket packet) {
@@ -128,11 +138,20 @@ public class Client {
                             //System.out.println(event.getMessage().getMessage());
                         } else if(packetObject instanceof ShutdownPacket) {
                             Main.getClientData().getViewManager().setView(ViewType.SERVER_SHUTDOWN);
+                        } else if (packetObject instanceof MemberRoomLeavePacket) {
+                            Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
+                            Main.getClientData().getViewManager().refresh();
                         }
                     }
                 } catch (IOException | ClassNotFoundException e) {
                     System.out.println("ERROR while reading!");
                     e.printStackTrace();
+                    try {
+                        client.panic();
+                    } catch (IOException ex) {
+                        System.out.println("CLIENT PANIC EXCEPTION: " + ex.getMessage());
+                        //throw new RuntimeException(ex);
+                    }
                 }
             }
         }

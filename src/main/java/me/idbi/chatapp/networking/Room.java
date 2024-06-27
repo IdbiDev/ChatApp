@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Getter
 @AllArgsConstructor
@@ -22,9 +23,14 @@ public class Room implements Serializable {
     private List<Member> members;
     private int maxMembers;
     private List<IMessage> messages;
+    private List<Member> administrators;
+
+    public boolean isFull() {
+        return this.maxMembers != -1 && this.maxMembers <= this.members.size();
+    }
 
     public boolean hasPassword() {
-        return this.password != null;
+        return this.password != null && !this.password.isBlank();
     }
 
     public void removeMember(Member member) {
@@ -38,4 +44,5 @@ public class Room implements Serializable {
         messages.add(message);
         Main.getClientData().setRefreshChatRoom(true);
     }
+
 }

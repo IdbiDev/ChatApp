@@ -8,6 +8,7 @@ import me.idbi.chatapp.networking.Member;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.table.TableManager;
 import me.idbi.chatapp.utils.InputManager;
+import me.idbi.chatapp.utils.NotificationManager;
 import me.idbi.chatapp.utils.TerminalManager;
 import me.idbi.chatapp.view.ViewManager;
 import me.idbi.chatapp.view.ViewType;
@@ -30,6 +31,7 @@ public class ClientData {
     private final TableManager tableManager;
     private final TerminalManager terminalManager;
     private final ViewManager viewManager;
+    private final NotificationManager notificationManager;
     @Setter private boolean refreshChatRoom;
     @Setter private boolean refreshBuffer;
     private Date joinedDate;
@@ -48,6 +50,7 @@ public class ClientData {
         this.inputManager = new InputManager();
         this.tableManager = new TableManager();
         this.terminalManager = new TerminalManager();
+        this.notificationManager = new NotificationManager();
         this.previousWidth = this.terminalManager.getWidth();
     }
 
@@ -93,7 +96,7 @@ public class ClientData {
 
             List<IMessage> currentMessages = Main.getClientData().getCurrentRoom().getMessages()
                     .stream()
-                    .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
+                    .filter(msg -> ((msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem()))
                     .toList();
 //
             List<IMessage> previousIMessages = view.getScrollIMessages(currentMessages, previousWidth);

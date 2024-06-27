@@ -7,6 +7,6 @@ import me.idbi.chatapp.packets.ServerPacket;
 
 @Getter
 @AllArgsConstructor
-public class LoginPacket extends ServerPacket {
-    private Member loginMember;
+public class MemberRoomLeavePacket extends ServerPacket {
+    private Member member;
 }

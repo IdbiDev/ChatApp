@@ -12,6 +12,7 @@ public interface IMessage {
     boolean isSystem();
     Room getRoom();
     String getMessage();
+    String getRawMessage();
     List<String> getMessage(int width);
     void setMessage(String message);
 

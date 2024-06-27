@@ -55,6 +55,10 @@ public class ClientMessage implements IMessage, Serializable {
         return String.format("(%s) %s: %s", Main.getMessageDateFormat().format(date), sender, message);
     }
 
+    public String getRawMessage() {
+        return this.message;
+    }
+
     @Override
     public void setMessage(String message) {
         this.message = message;

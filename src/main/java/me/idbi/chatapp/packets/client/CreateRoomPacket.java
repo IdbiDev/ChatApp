@@ -11,4 +11,8 @@ public class CreateRoomPacket extends ClientPacket {
     private String name;
     private String password;
     private int maxMembers;
+
+    public String getFormattedMaxMembers() {
+        return this.maxMembers == -1 ? "Végtelen" : this.maxMembers + "";
+    }
 }
