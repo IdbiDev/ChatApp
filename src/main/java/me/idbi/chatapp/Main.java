@@ -2,6 +2,8 @@ package me.idbi.chatapp;
 
 import dorkbox.notify.Notify;
 import lombok.Getter;
+import me.idbi.chatapp.commands.CommandManager;
+import me.idbi.chatapp.commands.chatcommands.LeaveCommand;
 import me.idbi.chatapp.eventmanagers.EventManager;
 import me.idbi.chatapp.eventmanagers.interfaces.Listener;
 import me.idbi.chatapp.networking.Client;
@@ -31,9 +33,11 @@ public class Main implements Listener {
     @Getter private static SimpleDateFormat messageDateFormat;
 
     @Getter private static ClientData clientData;
+    @Getter private static CommandManager commandManager;
     @Getter private static EventManager eventManager;
     @Getter private static Client client;
     @Getter private static int scrollState = 0;
+    @Getter private static Server server;
 
     public static void debug(String message)
     {
@@ -110,6 +114,7 @@ public class Main implements Listener {
 
 
         eventManager = new EventManager();
+        commandManager = new CommandManager();
         messageDateFormat = new SimpleDateFormat("MM.dd HH:mm:ss");
         if (args.length >= 1) {
             if (cmd.hasOption("c")) {
@@ -122,8 +127,9 @@ public class Main implements Listener {
 
                 clientData.getViewManager().setView(ViewType.LOGIN);
             } else if (cmd.hasOption("s")) {
-                Server server = new Server(port);
-
+                commandManager.registerCommand("leave", new LeaveCommand());
+                server = new Server(port);
+                server.serverLoop();
             }
         }
     }

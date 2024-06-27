@@ -371,7 +371,7 @@ public class TerminalManager {
                     switch (button) {
                         case ESCAPE: {
                             if(this.inputMode) {
-                                this.inputMode = false;
+                                this.inputMode = false;https://www.youtube.com/watch?v=ytTw4KZnop8
                                 this.prepareExit = true;
                             } else if (Main.getClientData().getViewManager().getView() instanceof RoomJoinView) {
                                 this.chatBuffer = "";
@@ -464,7 +464,7 @@ public class TerminalManager {
                             if (Main.getClientData().getViewManager().getView() instanceof RoomChatView view) {
                                 List<IMessage> clientMessages = Main.getClientData().getCurrentRoom().getMessages()
                                         .stream()
-                                        .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
+                                        .filter(msg -> ((msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem()))
                                         .toList();
                                 Main.getClientData().addScrollState(clientMessages, RoomChatView.getMessagesPerScroll() * 3);
                                 Main.getClientData().refreshBuffer();

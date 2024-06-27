@@ -58,7 +58,7 @@ public class RoomChatView implements IView {
 
                 List<IMessage> clientMessages = new ArrayList<IMessage>(Main.getClientData().getCurrentRoom().getMessages())
                         .stream()
-                        .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
+                        .filter(msg -> ((msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem()))
                         .toList();
 
                 Main.getClientData().getTerminalManager().clear();

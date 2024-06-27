@@ -36,6 +36,10 @@ public class ViewManager {
         if (view.hasThread()) {
             this.thread = new Thread(this::startUpdater);
             this.thread.start();
+
+            if(this.view instanceof IView.Tableable) {
+                refresh();
+            }
             return view;
         }
         startUpdater();

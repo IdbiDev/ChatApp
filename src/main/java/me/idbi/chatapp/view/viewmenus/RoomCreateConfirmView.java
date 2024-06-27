@@ -51,8 +51,8 @@ public class RoomCreateConfirmView implements IView, IView.Tableable {
         name.addRow(new Row(packet.getName(), false, false));
 
         Column infos = new Column(10);
-        infos.addRow(new Row("Információk", false, false, Row.Aligment.CENTER));
-        infos.addRow(new Row(packet.getMaxMembers() + "", false, false, Row.Aligment.CENTER));
+        infos.addRow(new Row("Maximum felhasználók", false, false, Row.Aligment.CENTER));
+        infos.addRow(new Row(packet.getFormattedMaxMembers(), false, false, Row.Aligment.CENTER));
 
         Column psw = new Column(20);
         psw.addRow(new Row("Jelszó", false, false, Row.Aligment.CENTER));

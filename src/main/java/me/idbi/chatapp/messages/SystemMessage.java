@@ -2,6 +2,7 @@ package me.idbi.chatapp.messages;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import me.idbi.chatapp.Main;
 import me.idbi.chatapp.networking.Member;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.utils.Utils;
@@ -67,7 +68,7 @@ public class SystemMessage implements IMessage, Serializable {
     }
 
     public boolean isExpired() {
-        return this.date.getTime() < this.expireTime;
+        return this.date.getTime() > this.expireTime;
     }
 
     @Override
@@ -76,12 +77,18 @@ public class SystemMessage implements IMessage, Serializable {
     }
 
     public boolean isExpired(Date joinDate) {
+        Main.debug(isExpired() + " " + (joinDate.getTime() > this.date.getTime()));
         return isExpired() && joinDate.getTime() > this.date.getTime();
     }
 
     @Override
     public boolean isSystem() {
         return false;
+    }
+
+    @Override
+    public String getRawMessage() {
+        return this.message;
     }
 
     @Override

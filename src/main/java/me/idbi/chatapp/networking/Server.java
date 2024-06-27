@@ -3,13 +3,13 @@ package me.idbi.chatapp.networking;
 import lombok.Getter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.events.servers.*;
+import me.idbi.chatapp.messages.IMessage;
 import me.idbi.chatapp.messages.SystemMessage;
 import me.idbi.chatapp.packets.ServerPacket;
 import me.idbi.chatapp.packets.client.*;
 import me.idbi.chatapp.packets.server.*;
 import me.idbi.chatapp.utils.RoomJoinResult;
 import me.idbi.chatapp.utils.TerminalManager;
-import me.idbi.chatapp.view.viewmenus.RoomCreateView;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -38,9 +38,9 @@ public class Server {
         this.clientInputStreams = new ConcurrentHashMap<>();
         this.clientOutputStreams = new ConcurrentHashMap<>();
         try {
-            createRoom("GYVAKK admin",null,"admin",10);
-            createRoom("Beszélgető",null,null,999);
-            createRoom("Patrik szobája",null,"kys",2);
+            createRoom("GYVAKK admin", null, "admin", 10);
+            createRoom("Beszélgető", null, null, 999);
+            createRoom("Patrik szobája", null, "kys", 2);
             this.serverSocket = new ServerSocket(port);
 
             //this.serverSocket.bind(new InetSocketAddress(port));
@@ -83,11 +83,11 @@ public class Server {
                             continue;
                         }
                         sendPacket(socketMember, new SendMessageToClientPacket(
-                                        new SystemMessage(
-                                                room,
-                                                SystemMessage.MessageType.QUIT.setMember(sockets.get(receiver)),
-                                                1
-                                        ))
+                                new SystemMessage(
+                                        room,
+                                        SystemMessage.MessageType.QUIT.setMember(sockets.get(sender)),
+                                        1
+                                ))
                         );
                     }
                 }
@@ -107,7 +107,7 @@ public class Server {
     }
 
     private Socket getSocketByMember(Member member) {
-        if(!sockets.containsValue(member)) {
+        if (!sockets.containsValue(member)) {
             return null;
         }
         return sockets.entrySet().stream().filter(element -> element.getValue().equals(member)).findAny().get().getKey();
@@ -129,8 +129,8 @@ public class Server {
                     System.out.println("Socket is closed");
                     Socket socketMember;
                     for (Room room : sockets.get(socket).getRooms()) {
-                        for(Member m : room.getMembers()) {
-                            if((socketMember = getSocketByMember(m)) == null || socketMember == socket) {
+                        for (Member m : room.getMembers()) {
+                            if ((socketMember = getSocketByMember(m)) == null || socketMember == socket) {
                                 continue;
                             }
                             sendPacket(socketMember, new SendMessageToClientPacket(
@@ -151,7 +151,7 @@ public class Server {
                 }
                 try {
                     if (socket.getInputStream().available() > 0) {
-                        if(!clientInputStreams.containsKey(socket)) {
+                        if (!clientInputStreams.containsKey(socket)) {
                             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
                             clientInputStreams.put(socket, in);
                         }
@@ -159,13 +159,13 @@ public class Server {
 
                         if (packetObject instanceof HandshakePacket packet) {
                             System.out.println("Loginolt: " + packet.getId());
-                            sockets.put(socket, new Member(packet.getId(), new ArrayList<>(),new HashMap<>()));
+                            sockets.put(socket, new Member(packet.getId(), new ArrayList<>(), new HashMap<>()));
                             sendPacket(socket, new LoginPacket(sockets.get(socket)));
 
                         } else if (packetObject instanceof RequestRefreshPacket) {
                             sendPacket(socket, new ReceiveRefreshPacket(this.rooms));
 
-                        } else if(packetObject instanceof RoomJoinPacket packet) {
+                        } else if (packetObject instanceof RoomJoinPacket packet) {
                             Room selectedRoom = this.rooms.get(packet.getUniqueId());
 
                             RoomJoinResult result = RoomJoinResult.SUCCESS;
@@ -174,7 +174,7 @@ public class Server {
                                 result = RoomJoinResult.INVALID_ROOM;
                             }
 
-                            if(selectedRoom != null && selectedRoom.hasPassword() && !Objects.equals(selectedRoom.getPassword(), packet.getPassword())) {
+                            if (selectedRoom != null && selectedRoom.hasPassword() && !Objects.equals(selectedRoom.getPassword(), packet.getPassword())) {
                                 result = RoomJoinResult.WRONG_PASSWORD;
                                 //sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.WRONG_PASSWORD, selectedRoom));
                             }
@@ -185,9 +185,9 @@ public class Server {
                             }
 
                             ServerRoomJoinEvent event = new ServerRoomJoinEvent(sockets.get(socket), selectedRoom, result);
-                            if(event.callEvent()) {
+                            if (event.callEvent()) {
                                 sendPacket(socket, new RoomJoinResultPacket(event.getResult(), selectedRoom, new Date()));
-                                if(result == RoomJoinResult.SUCCESS) {
+                                if (result == RoomJoinResult.SUCCESS) {
                                     selectedRoom.addMember(entry.getValue());
                                     Socket socketMember;
                                     SystemMessage msg = new SystemMessage(
@@ -195,8 +195,8 @@ public class Server {
                                             SystemMessage.MessageType.JOIN.setMember(entry.getValue()),
                                             1
                                     );
-                                    for(Member member : selectedRoom.getMembers()) {
-                                        if((socketMember = getSocketByMember(member)) == null) {
+                                    for (Member member : selectedRoom.getMembers()) {
+                                        if ((socketMember = getSocketByMember(member)) == null) {
                                             continue;
                                         }
                                         sendPacket(socketMember, new SendMessageToClientPacket(msg));
@@ -216,29 +216,42 @@ public class Server {
                             this.heartbeatTable.get(entry.getKey()).setLastPing(System.currentTimeMillis());
                         } else if (packetObject instanceof DebugMessagePacket a) {
                             System.out.println(a.getMessage());
-                        }
-
-                        else if (packetObject instanceof SendMessageToServerPacket packet) {
+                        } else if (packetObject instanceof SendMessageToServerPacket packet) {
                             Room selectedRoom = this.rooms.get(packet.getMessage().getRoom().getUniqueId());
                             ServerReceiveMessageEvent event = new ServerReceiveMessageEvent(packet.getMessage());
-                            packet.getMessage().setDate(new Date());
+                            IMessage msg = event.getMessage();
+                            msg.setDate(new Date());
 
-                            selectedRoom.getMessages().add(packet.getMessage());
+                            selectedRoom.getMessages().add(msg);
 
-                            System.out.println(packet.getMessage().getMessage());
-                            if(event.callEvent()) {
+                            System.out.println(msg.getMessage());
+                            String[] args = event.getMessage().getRawMessage().split(" ");
+                            if (event.getMessage().getRawMessage().startsWith("/")) {
+                                ServerCommandPreprocessEvent cmdEvent = new ServerCommandPreprocessEvent(
+                                        entry.getValue(), selectedRoom, args[0], Arrays.copyOfRange(args, 1, args.length));
+
+                                cmdEvent.callEvent();
+                                Main.getCommandManager().callCommand(
+                                        cmdEvent.getMember(),
+                                        cmdEvent.getRoom(),
+                                        cmdEvent.getCommand().replaceFirst("/", ""),
+                                        cmdEvent.getArgs()
+                                );
+                                continue;
+                            }
+                            if (event.callEvent()) {
+
                                 Socket socketMember;
                                 for (Member member : selectedRoom.getMembers()) {
-                                    if((socketMember = getSocketByMember(member)) == null) {
+                                    if ((socketMember = getSocketByMember(member)) == null) {
                                         continue;
                                     }
-
                                     sendPacket(socketMember, new SendMessageToClientPacket(event.getMessage()));
                                 }
 
                             }
                         } else if (packetObject instanceof CreateRoomPacket packet) {
-                            Room newRoom = new Room(UUID.randomUUID(), packet.getName(), entry.getValue(), packet.getPassword(), new ArrayList<>(), packet.getMaxMembers(), new ArrayList<>());
+                            Room newRoom = new Room(UUID.randomUUID(), packet.getName(), entry.getValue(), packet.getPassword(), new ArrayList<>(), packet.getMaxMembers(), new ArrayList<>(), new ArrayList<>());
                             ServerRoomCreateEvent event = new ServerRoomCreateEvent(newRoom);
                             if (event.callEvent()) {
                                 newRoom = event.getRoom();
@@ -301,10 +314,10 @@ public class Server {
                 try {
                     Socket socket = server.serverSocket.accept();
                     ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-                    server.clientOutputStreams.put(socket,out);
-                    server.sockets.put(socket, new Member("",new ArrayList<>(), new HashMap<>()));
+                    server.clientOutputStreams.put(socket, out);
+                    server.sockets.put(socket, new Member("", new ArrayList<>(), new HashMap<>()));
                     System.out.println("Accepted connection from222222 " + socket.getRemoteSocketAddress());
-                    server.heartbeatTable.put(socket,new PingPongMember(0,0));
+                    server.heartbeatTable.put(socket, new PingPongMember(0, 0));
 
                 } catch (IOException e) {
                     System.out.println("Accept failed");
@@ -313,6 +326,7 @@ public class Server {
             }
         }
     }
+
     public static class HeartBeatTimer implements Runnable {
 
         private final Server server;
@@ -328,14 +342,14 @@ public class Server {
                 try {
                     Thread.sleep(1000);
                     for (Map.Entry<Socket, PingPongMember> entry : server.heartbeatTable.entrySet()) {
-                        if(entry.getValue().getLastPing() + 5500 <= System.currentTimeMillis()) {
+                        if (entry.getValue().getLastPing() + 5500 <= System.currentTimeMillis()) {
                             entry.getValue().setFailCount(entry.getValue().getFailCount() + 1);
-                            if (entry.getValue().getFailCount() > 999999999) {
+                            if (entry.getValue().getFailCount() > 5) {
                                 // disconnect
                                 Socket socketMember;
                                 for (Room room : server.sockets.get(entry.getKey()).getRooms()) {
-                                    for(Member m : room.getMembers()) {
-                                        if((socketMember = server.getSocketByMember(m)) == null || socketMember == entry.getKey()) {
+                                    for (Member m : room.getMembers()) {
+                                        if ((socketMember = server.getSocketByMember(m)) == null || socketMember == entry.getKey()) {
                                             continue;
                                         }
                                         server.sendPacket(socketMember, new SendMessageToClientPacket(

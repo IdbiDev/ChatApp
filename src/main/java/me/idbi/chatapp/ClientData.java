@@ -96,7 +96,7 @@ public class ClientData {
 
             List<IMessage> currentMessages = Main.getClientData().getCurrentRoom().getMessages()
                     .stream()
-                    .filter(msg -> (msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem())
+                    .filter(msg -> ((msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem()))
                     .toList();
 //
             List<IMessage> previousIMessages = view.getScrollIMessages(currentMessages, previousWidth);
