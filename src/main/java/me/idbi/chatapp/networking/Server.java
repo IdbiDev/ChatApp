@@ -16,6 +16,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Getter
 public class Server {
@@ -27,12 +28,10 @@ public class Server {
     private final Map<Socket, PingPongMember> heartbeatTable;
     private final Map<Socket, ObjectInputStream> clientInputStreams;
     private final Map<Socket, ObjectOutputStream> clientOutputStreams;
-
-
     private final Map<UUID, Room> rooms;
 
     public Server(int port) {
-        this.rooms = new HashMap<>();
+        this.rooms = new ConcurrentHashMap<>();
         this.sockets = new ConcurrentHashMap<>();
         this.heartbeatTable = new ConcurrentHashMap<>();
         this.clientInputStreams = new ConcurrentHashMap<>();
@@ -63,23 +62,30 @@ public class Server {
                     e.printStackTrace();
                 }
             }));
-            this.serverLoop();
+            //this.serverLoop();
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
     }
 
-    private void sendPacket(Socket receiver, ServerPacket packet) {
+    public void sendPacket(Member sender, ServerPacket packet) {
+        if (getSocketByMember(sender) != null)
+            sendPacket(getSocketByMember(sender), packet);
+        else
+            System.out.println("cica nem egyenlő cicca");
+    }
+
+    private void sendPacket(Socket sender, ServerPacket packet) {
         try {
-            ObjectOutputStream out = clientOutputStreams.get(receiver);
+            ObjectOutputStream out = clientOutputStreams.get(sender);
             out.writeObject(packet);
             out.flush();
         } catch (IOException e) {
             if (packet instanceof PingPacket) {
                 Socket socketMember;
-                for (Room room : sockets.get(receiver).getRooms()) {
-                    for(Member m : room.getMembers()) {
-                        if((socketMember = getSocketByMember(m)) == null || socketMember == receiver) {
+                for (Room room : sockets.get(sender).getRooms()) {
+                    for (Member m : room.getMembers()) {
+                        if ((socketMember = getSocketByMember(m)) == null || socketMember == sender) {
                             continue;
                         }
                         sendPacket(socketMember, new SendMessageToClientPacket(
@@ -91,15 +97,15 @@ public class Server {
                         );
                     }
                 }
-                new ServerClientDisconnectEvent(sockets.get(receiver), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
+                new ServerClientDisconnectEvent(sockets.get(sender), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
 
-                System.out.println(sockets.get(receiver).getName() + " disconnected (No connection)");
+                System.out.println(sockets.get(sender).getName() + " disconnected (No connection)");
 
-                heartbeatTable.remove(receiver);
+                heartbeatTable.remove(sender);
                 for (Room room : rooms.values()) {
-                    room.removeMember(sockets.get(receiver));
+                    room.removeMember(sockets.get(sender));
                 }
-                sockets.remove(receiver);
+                sockets.remove(sender);
                 return;
             }
             e.printStackTrace();
@@ -113,7 +119,7 @@ public class Server {
         return sockets.entrySet().stream().filter(element -> element.getValue().equals(member)).findAny().get().getKey();
     }
 
-    private void serverLoop() {
+    public void serverLoop() {
         while (true) {
             try {
                 Thread.sleep(1);
@@ -249,6 +255,7 @@ public class Server {
                                     sendPacket(socketMember, new SendMessageToClientPacket(event.getMessage()));
                                 }
 
+
                             }
                         } else if (packetObject instanceof CreateRoomPacket packet) {
                             Room newRoom = new Room(UUID.randomUUID(), packet.getName(), entry.getValue(), packet.getPassword(), new ArrayList<>(), packet.getMaxMembers(), new ArrayList<>(), new ArrayList<>());
@@ -296,7 +303,7 @@ public class Server {
 
     private void createRoom(String name, Member owner, String password, int maxMembers) {
         UUID uuid = UUID.randomUUID();
-        this.rooms.put(uuid, new Room(uuid, name, owner, password, new ArrayList<>(), maxMembers, new ArrayList<>()));
+        this.rooms.put(uuid, new Room(uuid, name, owner, password, new CopyOnWriteArrayList<>(), maxMembers, new CopyOnWriteArrayList<>(), new CopyOnWriteArrayList<>()));
     }
 
 

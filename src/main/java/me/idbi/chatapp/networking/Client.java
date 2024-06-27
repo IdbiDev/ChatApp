@@ -138,6 +138,9 @@ public class Client {
                             //System.out.println(event.getMessage().getMessage());
                         } else if(packetObject instanceof ShutdownPacket) {
                             Main.getClientData().getViewManager().setView(ViewType.SERVER_SHUTDOWN);
+                        } else if (packetObject instanceof MemberRoomLeavePacket) {
+                            Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
+                            Main.getClientData().getViewManager().refresh();
                         }
                     }
                 } catch (IOException | ClassNotFoundException e) {
