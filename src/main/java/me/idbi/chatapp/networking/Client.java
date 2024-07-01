@@ -17,6 +17,7 @@ import me.idbi.chatapp.view.ViewType;
 
 import java.io.*;
 import java.net.Socket;
+import java.time.ZoneId;
 
 public class Client {
 
@@ -125,6 +126,7 @@ public class Client {
                             Main.getClientData().setClientMember(packet.getLoginMember());
                             new ClientLoginEvent(packet.getLoginMember()).callEvent();
                         } else if (packetObject instanceof ReceiveRefreshPacket packet) {
+                            Main.debug("Emotional RollerCoaster REFRESH CLIENT GOT sent" + packet.getRooms().size());
                             new ClientRefreshEvent(packet.getRooms()).callEvent();
                         } else if (packetObject instanceof RoomJoinResultPacket packet) {
                             ClientRoomJoinEvent joinEvent = new ClientRoomJoinEvent(packet.getRoom(), packet.getResult(), packet.getJoinAt());
