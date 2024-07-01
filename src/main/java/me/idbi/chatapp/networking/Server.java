@@ -14,6 +14,8 @@ import me.idbi.chatapp.utils.TerminalManager;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -269,7 +271,11 @@ public class Server {
                                 newRoom.addMember(entry.getValue());
 
 
-                                SystemMessage msg = new SystemMessage(newRoom, TerminalManager.Color.GREEN.getCode() + SystemMessage.MessageType.ROOM_CREATE.setRoom(newRoom.getName()) + TerminalManager.Color.RESET, new Date(), 1);
+                                SystemMessage msg = new SystemMessage(
+                                        newRoom,
+                                        TerminalManager.Color.GREEN.getCode() + SystemMessage.MessageType.ROOM_CREATE.setRoom(newRoom.getName()) + TerminalManager.Color.RESET,
+                                        new Date(),
+                                        1);
                                 newRoom.getMessages().add(msg);
 
                                 sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.SUCCESS, newRoom, new Date()));

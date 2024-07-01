@@ -56,7 +56,7 @@ public class RoomCreateConfirmView implements IView, IView.Tableable {
 
         Column psw = new Column(20);
         psw.addRow(new Row("Jelszó", false, false, Row.Aligment.CENTER));
-        psw.addRow(new Row(packet.getPassword(), false, false, Row.Aligment.CENTER));
+        psw.addRow(new Row(packet.getPassword() == null ? "-" : packet.getPassword(), false, false, Row.Aligment.CENTER));
 
 
         Table roomTable = new Table();
