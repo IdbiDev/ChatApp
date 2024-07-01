@@ -174,6 +174,7 @@ public class Server {
                         } else if (packetObject instanceof RoomJoinPacket packet) {
                             Room selectedRoom = this.rooms.get(packet.getUniqueId());
 
+                            System.out.println("Csatlakozott: " + selectedRoom.getMembers().size());
                             RoomJoinResult result = RoomJoinResult.SUCCESS;
 
                             if (selectedRoom == null) {
