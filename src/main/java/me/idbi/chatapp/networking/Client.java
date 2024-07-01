@@ -125,8 +125,11 @@ public class Client {
                             Main.getClientData().setClientMember(packet.getLoginMember());
                             new ClientLoginEvent(packet.getLoginMember()).callEvent();
                         } else if (packetObject instanceof ReceiveRefreshPacket packet) {
+                            Main.debug("Client received refresh: " + packet.getRooms().values().stream().map(el -> el.getName() + " " + el.getMembers().size()).toList());
+
                             new ClientRefreshEvent(packet.getRooms()).callEvent();
                         } else if (packetObject instanceof RoomJoinResultPacket packet) {
+                            Main.debug("Client received: " + packet.getRoom().getMembers());
                             ClientRoomJoinEvent joinEvent = new ClientRoomJoinEvent(packet.getRoom(), packet.getResult(), packet.getJoinAt());
                             joinEvent.callEvent();
                         } else if (packetObject instanceof PingPacket packet) {
@@ -134,7 +137,8 @@ public class Client {
                         } else if (packetObject instanceof SendMessageToClientPacket packet) {
                             ClientMessageEvent event = new ClientMessageEvent(packet.getMessage());
                             event.callEvent();
-                            Main.getClientData().getCurrentRoom().sendMessage(event.getMessage());
+                            if(Main.getClientData().getCurrentRoom() != null)
+                                Main.getClientData().getCurrentRoom().sendMessage(event.getMessage());
                             //System.out.println(event.getMessage().getMessage());
                         } else if(packetObject instanceof ShutdownPacket) {
                             Main.getClientData().getViewManager().setView(ViewType.SERVER_SHUTDOWN);

@@ -20,10 +20,11 @@ public class LeaveCommand implements CommandExecutor {
                     SystemMessage.MessageType.QUIT.setMember(sender),
                     1);
 
-            for(Member m : room.getMembers()){
+            for(Member m : room.getMembers()) {
                 Main.getServer().sendPacket(m, new SendMessageToClientPacket(msg));
                 System.out.println(m.getName());
             }
+            Main.getServer().refreshForKukacEveryoneUwU();
 
         }
         return false;

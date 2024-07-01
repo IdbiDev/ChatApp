@@ -192,7 +192,7 @@ public class Server {
 
                             ServerRoomJoinEvent event = new ServerRoomJoinEvent(sockets.get(socket), selectedRoom, result);
                             if (event.callEvent()) {
-                                sendPacket(socket, new RoomJoinResultPacket(event.getResult(), selectedRoom, new Date()));
+
                                 if (result == RoomJoinResult.SUCCESS) {
                                     selectedRoom.addMember(entry.getValue());
                                     Socket socketMember;
@@ -210,10 +210,9 @@ public class Server {
                                         //Send member joined packet
 
                                     }
-                                    for (Map.Entry<Socket, Member> socketMemberEntry : this.sockets.entrySet()) {
-                                        sendPacket(socketMemberEntry.getKey(), new ReceiveRefreshPacket(this.rooms));
-                                    }
+                                    refreshForKukacEveryoneUwU();
                                 }
+                                sendPacket(socket, new RoomJoinResultPacket(event.getResult(), selectedRoom, new Date()));
                             } else {
                                 sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.CANCELLED, selectedRoom, new Date()));
                             }
@@ -274,13 +273,11 @@ public class Server {
 
                                 sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.SUCCESS, newRoom, new Date()));
 
-                                for (Map.Entry<Socket, Member> socketMemberEntry : this.sockets.entrySet()) {
-                                    sendPacket(socketMemberEntry.getKey(), new ReceiveRefreshPacket(this.rooms));
-                                }
+                                refreshForKukacEveryoneUwU();
                             }
                         }
                     }
-                } catch (IOException | ClassNotFoundException | ClassCastException e) {
+                } catch (IOException | ClassNotFoundException | ClassCastException | IllegalStateException  e) {
                     System.out.println("ERROR while reading!");
                     try {
                         sendPacket(socket, new ShutdownPacket());
@@ -303,7 +300,12 @@ public class Server {
 
     private void createRoom(String name, Member owner, String password, int maxMembers) {
         UUID uuid = UUID.randomUUID();
-        this.rooms.put(uuid, new Room(uuid, name, owner, password, new CopyOnWriteArrayList<>(), maxMembers, new CopyOnWriteArrayList<>(), new CopyOnWriteArrayList<>()));
+        this.rooms.put(uuid, new Room(uuid, name, owner, password, new ArrayList<>(), maxMembers, new ArrayList<>(), new ArrayList<>()));
+    }
+    public void refreshForKukacEveryoneUwU() {
+        for (Member member : sockets.values()) {
+            sendPacket(member, new ReceiveRefreshPacket(this.rooms));
+        }
     }
 
 
