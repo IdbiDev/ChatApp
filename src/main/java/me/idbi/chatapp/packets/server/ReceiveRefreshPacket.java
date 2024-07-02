@@ -13,7 +13,5 @@ public class ReceiveRefreshPacket extends ServerPacket {
     private final Map<UUID, Room> rooms;
     public ReceiveRefreshPacket(Map<UUID, Room> rooms) {
         this.rooms = rooms;
-        System.out.println("EAVERYONE33333: " + this.rooms.values().stream().map(el -> el.getName() + " " + el.getMembers().size()).toList());
-
     }
 }
