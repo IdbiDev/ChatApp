@@ -2,6 +2,7 @@ package me.idbi.chatapp.networking;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.messages.ClientMessage;
 import me.idbi.chatapp.messages.IMessage;
@@ -14,6 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 @Getter
 @AllArgsConstructor
+@Setter
 public class Room implements Serializable {
 
     private UUID uniqueId;

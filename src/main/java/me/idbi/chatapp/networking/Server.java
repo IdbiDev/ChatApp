@@ -14,6 +14,7 @@ import me.idbi.chatapp.utils.TerminalManager;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
@@ -82,6 +83,17 @@ public class Server {
             ObjectOutputStream out = clientOutputStreams.get(sender);
             out.writeObject(packet);
             out.flush();
+            out.reset();
+        } catch (SocketException e) {
+            new ServerClientDisconnectEvent(sockets.get(sender), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
+
+            System.out.println(sockets.get(sender).getName() + " disconnected (Socket error)");
+
+            heartbeatTable.remove(sender);
+            for (Room room : rooms.values()) {
+                room.removeMember(sockets.get(sender));
+            }
+            sockets.remove(sender);
         } catch (IOException e) {
             if (packet instanceof PingPacket) {
                 Socket socketMember;
@@ -176,7 +188,6 @@ public class Server {
                         } else if (packetObject instanceof RoomJoinPacket packet) {
                             Room selectedRoom = this.rooms.get(packet.getUniqueId());
 
-                            System.out.println("Csatlakozott: " + selectedRoom.getMembers().size());
                             RoomJoinResult result = RoomJoinResult.SUCCESS;
 
                             if (selectedRoom == null) {
@@ -281,6 +292,19 @@ public class Server {
                                 sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.SUCCESS, newRoom, new Date()));
 
                                 refreshForKukacEveryoneUwU();
+
+                            }
+                        }else if(packetObject instanceof RoomEditPacket packet){
+                            Room tempRoom = this.rooms.get(packet.getRoom());
+                            if(tempRoom.getOwner() != entry.getValue()){
+                                continue;
+                            }
+                            switch (packet.getType()) {
+                                case RENAME -> tempRoom.setName((String) packet.getValue());
+                                case SET_PASSWORD -> tempRoom.setPassword(packet.getValue() == "" ? null : (String) packet.getValue());
+                                case TRANSFER_OWNERSHIP -> {
+                                    
+                                }
                             }
                         }
                     }
@@ -307,7 +331,7 @@ public class Server {
 
     private void createRoom(String name, Member owner, String password, int maxMembers) {
         UUID uuid = UUID.randomUUID();
-        this.rooms.put(uuid, new Room(uuid, name, owner, password, new ArrayList<>(), maxMembers, new ArrayList<>(), new ArrayList<>()));
+        this.rooms.put(uuid, new Room(uuid, name, owner, password, new CopyOnWriteArrayList<>(), maxMembers, new CopyOnWriteArrayList<>(), new CopyOnWriteArrayList<>()));
     }
     public void refreshForKukacEveryoneUwU() {
         for (Member member : sockets.values()) {
@@ -332,7 +356,7 @@ public class Server {
                     ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                     server.clientOutputStreams.put(socket, out);
                     server.sockets.put(socket, new Member("", new ArrayList<>(), new HashMap<>()));
-                    System.out.println("Accepted connection from222222 " + socket.getRemoteSocketAddress());
+                    System.out.println("Accepted connection from " + socket.getRemoteSocketAddress());
                     server.heartbeatTable.put(socket, new PingPongMember(0, 0));
 
                 } catch (IOException e) {

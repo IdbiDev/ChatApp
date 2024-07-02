@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Getter
 public class ReceiveRefreshPacket extends ServerPacket {
-    private Map<UUID, Room> rooms;
+    private final Map<UUID, Room> rooms;
     public ReceiveRefreshPacket(Map<UUID, Room> rooms) {
         this.rooms = rooms;
         System.out.println("EAVERYONE33333: " + this.rooms.values().stream().map(el -> el.getName() + " " + el.getMembers().size()).toList());

@@ -70,6 +70,7 @@ public class Client {
         try {
             out.writeObject(packet);
             out.flush();
+            //out.reset();
         } catch (IOException e) {
             System.out.println("Error: " + e.getMessage());
             Main.getClientData().getViewManager().setView(ViewType.SERVER_SHUTDOWN);
@@ -126,10 +127,8 @@ public class Client {
                             Main.getClientData().setClientMember(packet.getLoginMember());
                             new ClientLoginEvent(packet.getLoginMember()).callEvent();
                         } else if (packetObject instanceof ReceiveRefreshPacket packet) {
-                            Main.debug("Client received refresh: " + packet.getRooms().values().stream().map(el -> el.getName() + " " + el.getMembers().size()).toList());
                             new ClientRefreshEvent(packet.getRooms()).callEvent();
                         } else if (packetObject instanceof RoomJoinResultPacket packet) {
-                            Main.debug("Client received: " + packet.getRoom().getMembers());
                             ClientRoomJoinEvent joinEvent = new ClientRoomJoinEvent(packet.getRoom(), packet.getResult(), packet.getJoinAt());
                             joinEvent.callEvent();
                         } else if (packetObject instanceof PingPacket packet) {
