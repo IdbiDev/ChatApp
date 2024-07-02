@@ -17,6 +17,7 @@ import me.idbi.chatapp.view.ViewType;
 
 import java.io.*;
 import java.net.Socket;
+import java.time.ZoneId;
 
 public class Client {
 
@@ -126,7 +127,6 @@ public class Client {
                             new ClientLoginEvent(packet.getLoginMember()).callEvent();
                         } else if (packetObject instanceof ReceiveRefreshPacket packet) {
                             Main.debug("Client received refresh: " + packet.getRooms().values().stream().map(el -> el.getName() + " " + el.getMembers().size()).toList());
-
                             new ClientRefreshEvent(packet.getRooms()).callEvent();
                         } else if (packetObject instanceof RoomJoinResultPacket packet) {
                             Main.debug("Client received: " + packet.getRoom().getMembers());

@@ -6,6 +6,7 @@ import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.view.ViewType;
 import me.idbi.chatapp.view.viewmenus.RoomListView;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -20,9 +21,8 @@ public class ClientRefreshEvent extends Event {
     @Override
     public boolean callEvent() {
         Main.getEventManager().callEvent(this);
-
+        Main.getClientData().setRooms(new HashMap<>(this.newRooms));
         if(Main.getClientData().getViewManager().getView() instanceof RoomListView){
-            Main.getClientData().setRooms(this.newRooms);
             Main.getClientData().getViewManager().refresh();
         }
         return true;

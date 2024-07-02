@@ -1,11 +1,9 @@
 package me.idbi.chatapp.packets.server;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.packets.ServerPacket;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -18,5 +16,4 @@ public class ReceiveRefreshPacket extends ServerPacket {
         System.out.println("EAVERYONE33333: " + this.rooms.values().stream().map(el -> el.getName() + " " + el.getMembers().size()).toList());
 
     }
-
 }
