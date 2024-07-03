@@ -295,7 +295,7 @@ public class Server {
 
                             }
                         }else if(packetObject instanceof RoomEditPacket packet){
-                            Room tempRoom = this.rooms.get(packet.getRoom());
+                            Room tempRoom = this.rooms.get(packet.getUniqueId());
                             if(tempRoom.getOwner() != entry.getValue()){
                                 continue;
                             }
@@ -303,7 +303,7 @@ public class Server {
                                 case RENAME -> tempRoom.setName((String) packet.getValue());
                                 case SET_PASSWORD -> tempRoom.setPassword(packet.getValue() == "" ? null : (String) packet.getValue());
                                 case TRANSFER_OWNERSHIP -> {
-                                    
+                                    tempRoom.setOwner();
                                 }
                             }
                         }
