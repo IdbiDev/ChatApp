@@ -179,7 +179,7 @@ public class Server {
 
                         if (packetObject instanceof HandshakePacket packet) {
                             System.out.println("Loginolt: " + packet.getId());
-                            sockets.put(socket, new Member(packet.getId(), new ArrayList<>(), new HashMap<>()));
+                            sockets.put(socket, new Member(UUID.randomUUID(),packet.getId(), packet.getId(), new ArrayList<>(), new HashMap<>()));
                             sendPacket(socket, new LoginPacket(sockets.get(socket)));
 
                         } else if (packetObject instanceof RequestRefreshPacket) {
@@ -303,7 +303,7 @@ public class Server {
                                 case RENAME -> tempRoom.setName((String) packet.getValue());
                                 case SET_PASSWORD -> tempRoom.setPassword(packet.getValue() == "" ? null : (String) packet.getValue());
                                 case TRANSFER_OWNERSHIP -> {
-                                    tempRoom.setOwner();
+                                    //tempRoom.setOwner();
                                 }
                             }
                         }
@@ -355,7 +355,7 @@ public class Server {
                     Socket socket = server.serverSocket.accept();
                     ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                     server.clientOutputStreams.put(socket, out);
-                    server.sockets.put(socket, new Member("", new ArrayList<>(), new HashMap<>()));
+                    server.sockets.put(socket, new Member(UUID.randomUUID(),"","", new ArrayList<>(), new HashMap<>()));
                     System.out.println("Accepted connection from " + socket.getRemoteSocketAddress());
                     server.heartbeatTable.put(socket, new PingPongMember(0, 0));
 

@@ -28,7 +28,7 @@ public class DatabaseManager {
         this.host = "localhost";
         this.port = 3306;
         this.database = "chatapp";
-        this.username = "chatapp";
+        this.username = "postgres";
         this.password = "admin";
         this.parameters = "";
     }

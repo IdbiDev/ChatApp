@@ -1,13 +1,16 @@
 package me.idbi.chatapp;
 
 import dorkbox.notify.Notify;
+import dorkbox.util.Sys;
 import lombok.Getter;
 import me.idbi.chatapp.commands.CommandManager;
 import me.idbi.chatapp.commands.chatcommands.LeaveCommand;
+import me.idbi.chatapp.database.DatabaseManager;
 import me.idbi.chatapp.eventmanagers.EventManager;
 import me.idbi.chatapp.eventmanagers.interfaces.Listener;
 import me.idbi.chatapp.networking.Client;
 import me.idbi.chatapp.networking.Server;
+import me.idbi.chatapp.notifications.Notification;
 import me.idbi.chatapp.packets.client.DebugMessagePacket;
 import me.idbi.chatapp.view.ViewType;
 import org.apache.commons.cli.*;
@@ -15,6 +18,7 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.NonBlockingReader;
 
+import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -38,6 +42,7 @@ public class Main implements Listener {
     @Getter private static Client client;
     @Getter private static int scrollState = 0;
     @Getter private static Server server;
+    @Getter private static DatabaseManager databaseManager;
 
     public static void debug(String message)
     {
@@ -58,7 +63,7 @@ public class Main implements Listener {
         }
     }
     // Server //
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException, InterruptedException, AWTException {
 //        Terminal terminal = TerminalBuilder.terminal();
 //        terminal.enterRawMode();
 //        NonBlockingReader nonBlockingReader = terminal.reader();
@@ -67,6 +72,17 @@ public class Main implements Listener {
 //            System.out.println(nonBlockingReader.read());
 //        }
 
+        Image image = Toolkit.getDefaultToolkit().createImage("info.png");
+        Notification.icon = new TrayIcon(image, "CICA");
+        //Let the system resize the image if needed
+        Notification.icon.setImageAutoSize(true);
+        //Set tooltip text for the tray icon
+        Notification.icon.setToolTip("22222");
+        SystemTray.getSystemTray().add(Notification.icon);
+
+        new Notification("title", "dec1s", Notification.NotificationType.INFO).send();
+        new Notification("title", "decs2", Notification.NotificationType.INFO).send();
+        new Notification("title", "dec3s", Notification.NotificationType.INFO).send();
         Options options = new Options();
         Option serverOption = new Option("s", "server", false, "Run as server");
         serverOption.setRequired(false);
@@ -129,6 +145,8 @@ public class Main implements Listener {
             } else if (cmd.hasOption("s")) {
                 commandManager.registerCommand("leave", new LeaveCommand());
                 server = new Server(port);
+                databaseManager = new DatabaseManager();
+                databaseManager.connect();
                 server.serverLoop();
             }
         }

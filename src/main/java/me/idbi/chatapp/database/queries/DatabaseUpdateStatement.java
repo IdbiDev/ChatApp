@@ -44,8 +44,8 @@ public class DatabaseUpdateStatement implements IDatabaseStatement {
 
         return conn.prepareStatement("UPDATE " + this.table + " SET " + sets + " WHERE " + wheres);
 
-        new DatabaseUpdateStatement("column",
-                Set.of("UUID", 123).append("NAME", "kbalu"),
-                Where.of("UUID", 321).append("NAME", "Adbi20014"));
+//        new DatabaseUpdateStatement("column",
+//                Set.of("UUID", 123).append("NAME", "kbalu"),
+//                Where.of("UUID", 321).append("NAME", "Adbi20014"));
     }
 }
