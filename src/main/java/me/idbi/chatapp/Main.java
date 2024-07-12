@@ -82,9 +82,9 @@ public class Main implements Listener {
         Notification.icon.setToolTip("22222");
         SystemTray.getSystemTray().add(Notification.icon);
 
-        new Notification("title", "dec1s", Notification.NotificationType.INFO).send();
-        new Notification("title", "decs2", Notification.NotificationType.INFO).send();
-        new Notification("title", "dec3s", Notification.NotificationType.INFO).send();
+//        new Notification("title", "dec1s", Notification.NotificationType.INFO).send();
+//        new Notification("title", "decs2", Notification.NotificationType.INFO).send();
+//        new Notification("title", "dec3s", Notification.NotificationType.INFO).send();
         Options options = new Options();
         Option serverOption = new Option("s", "server", false, "Run as server");
         serverOption.setRequired(false);

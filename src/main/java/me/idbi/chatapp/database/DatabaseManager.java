@@ -1,8 +1,6 @@
 package me.idbi.chatapp.database;
 
 import lombok.Getter;
-import me.idbi.chatapp.database.queries.DatabaseWhereQuery;
-import me.idbi.chatapp.database.queries.Where;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -24,6 +22,8 @@ public class DatabaseManager {
 
     private Connection connection;
 
+    private final DatabaseDriver driver;
+
     public DatabaseManager() {
         this.host = "localhost";
         this.port = 3306;
@@ -31,6 +31,7 @@ public class DatabaseManager {
         this.username = "postgres";
         this.password = "admin";
         this.parameters = "";
+        this.driver = new DatabaseDriver();
     }
 
     public void connect() {
@@ -50,6 +51,5 @@ public class DatabaseManager {
     }
 
     public void disconnect() {
-        String query = "UPDATE column SET uuid = ? WHERE " + new DatabaseWhereQuery("UUID", 123).append("NAME", "kbalu");
     }
 }
