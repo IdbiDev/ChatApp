@@ -15,6 +15,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
@@ -40,9 +41,6 @@ public class Server {
         this.clientInputStreams = new ConcurrentHashMap<>();
         this.clientOutputStreams = new ConcurrentHashMap<>();
         try {
-            createRoom("GYVAKK admin", null, "admin", 10);
-            createRoom("Beszélgető", null, null, 999);
-            createRoom("Patrik szobája", null, "kys", 2);
             this.serverSocket = new ServerSocket(port);
 
             //this.serverSocket.bind(new InetSocketAddress(port));
@@ -178,10 +176,20 @@ public class Server {
                         Object packetObject = clientInputStreams.get(socket).readObject();
 
                         if (packetObject instanceof HandshakePacket packet) {
-                            System.out.println("Loginolt: " + packet.getId());
-                            sockets.put(socket, new Member(UUID.randomUUID(),packet.getId(), packet.getId(), new ArrayList<>(), new HashMap<>()));
-                            sendPacket(socket, new LoginPacket(sockets.get(socket)));
-
+                            Main.getDatabaseManager().getDriver().poll("SELECT * FROM users WHERE name = ?", packet.getId()).thenAcceptAsync(res -> {
+                                try {
+                                    if (res.next()){
+                                        sockets.put(socket, new Member(UUID.fromString(res.getString("uuid")),res.getString("name"), res.getString("displayname"), new ArrayList<>(), new HashMap<>()));
+                                    }else{
+                                        sockets.put(socket, new Member(UUID.randomUUID(),packet.getId(), packet.getId(), new ArrayList<>(), new HashMap<>()));
+                                        Main.getDatabaseManager().getDriver().exec("INSERT INTO users (uuid,name,displayname) VALUES (?,?,?)",sockets.get(socket).getUniqueId().toString(),packet.getId(),packet.getId());
+                                    }
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                }
+                                System.out.println("Loginolt: " + packet.getId());
+                                sendPacket(socket, new LoginPacket(sockets.get(socket)));
+                            });
                         } else if (packetObject instanceof RequestRefreshPacket) {
                             sendPacket(socket, new ReceiveRefreshPacket(this.rooms));
 
@@ -271,7 +279,7 @@ public class Server {
 
                             }
                         } else if (packetObject instanceof CreateRoomPacket packet) {
-                            Room newRoom = new Room(UUID.randomUUID(), packet.getName(), entry.getValue(), packet.getPassword(), new ArrayList<>(), packet.getMaxMembers(), new ArrayList<>(), new ArrayList<>());
+                            Room newRoom = new Room(UUID.randomUUID(), packet.getName(), entry.getValue().getUniqueId(), packet.getPassword(), new ArrayList<>(), packet.getMaxMembers(), new ArrayList<>(), new ArrayList<>());
                             ServerRoomCreateEvent event = new ServerRoomCreateEvent(newRoom);
                             if (event.callEvent()) {
                                 newRoom = event.getRoom();
@@ -296,7 +304,7 @@ public class Server {
                             }
                         }else if(packetObject instanceof RoomEditPacket packet){
                             Room tempRoom = this.rooms.get(packet.getUniqueId());
-                            if(tempRoom.getOwner() != entry.getValue()){
+                            if(tempRoom.getOwner() != entry.getValue().getUniqueId()){
                                 continue;
                             }
                             switch (packet.getType()) {
@@ -329,10 +337,6 @@ public class Server {
         }
     }
 
-    private void createRoom(String name, Member owner, String password, int maxMembers) {
-        UUID uuid = UUID.randomUUID();
-        this.rooms.put(uuid, new Room(uuid, name, owner, password, new CopyOnWriteArrayList<>(), maxMembers, new CopyOnWriteArrayList<>(), new CopyOnWriteArrayList<>()));
-    }
     public void refreshForKukacEveryoneUwU() {
         for (Member member : sockets.values()) {
             sendPacket(member, new ReceiveRefreshPacket(this.rooms));

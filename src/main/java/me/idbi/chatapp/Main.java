@@ -5,6 +5,7 @@ import dorkbox.util.Sys;
 import lombok.Getter;
 import me.idbi.chatapp.commands.CommandManager;
 import me.idbi.chatapp.commands.chatcommands.LeaveCommand;
+import me.idbi.chatapp.database.DatabaseDriver;
 import me.idbi.chatapp.database.DatabaseManager;
 import me.idbi.chatapp.eventmanagers.EventManager;
 import me.idbi.chatapp.eventmanagers.interfaces.Listener;
@@ -23,6 +24,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Scanner;
+import java.util.UUID;
 
 /*
     Todo: Kérdések mr sósmogyorónak or patrik :3:
@@ -143,10 +145,10 @@ public class Main implements Listener {
 
                 clientData.getViewManager().setView(ViewType.LOGIN);
             } else if (cmd.hasOption("s")) {
-                commandManager.registerCommand("leave", new LeaveCommand());
-                server = new Server(port);
                 databaseManager = new DatabaseManager();
                 databaseManager.connect();
+                commandManager.registerCommand("leave", new LeaveCommand());
+                server = new Server(port);
                 server.serverLoop();
             }
         }

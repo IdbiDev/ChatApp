@@ -20,12 +20,12 @@ public class Room implements Serializable {
 
     private UUID uniqueId;
     private String name;
-    private Member owner;
+    private UUID owner;
     private String password;
     private List<Member> members;
     private int maxMembers;
     private List<IMessage> messages;
-    private List<Member> administrators;
+    private List<UUID> administrators;
 
     public boolean isFull() {
         return this.maxMembers != -1 && this.maxMembers <= this.members.size();
