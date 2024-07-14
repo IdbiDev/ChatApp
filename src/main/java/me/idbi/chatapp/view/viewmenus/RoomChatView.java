@@ -58,7 +58,7 @@ public class RoomChatView implements IView {
 
                 List<IMessage> clientMessages = new ArrayList<IMessage>(Main.getClientData().getCurrentRoom().getMessages())
                         .stream()
-                        .filter(msg -> ((msg.isSystem() && !((SystemMessage) msg).isExpired(Main.getClientData().getJoinedDate())) || !msg.isSystem()))
+                        .filter(this::isExpired)
                         .toList();
 
                 Main.getClientData().getTerminalManager().clear();
@@ -82,6 +82,12 @@ public class RoomChatView implements IView {
 
         //Main.getClientData().getTerminalManager().clear();
 
+    }
+
+    private boolean isExpired(IMessage message) {
+        if(!(message instanceof SystemMessage msg)) return true;
+
+        return msg.isExpired(Main.getClientData().getJoinedDate());
     }
 
     public List<String> getScrollMessages(List<IMessage> messages) {

@@ -17,6 +17,7 @@ import me.idbi.chatapp.view.ViewType;
 
 import java.io.*;
 import java.net.Socket;
+import java.time.ZoneId;
 
 public class Client {
 
@@ -69,6 +70,7 @@ public class Client {
         try {
             out.writeObject(packet);
             out.flush();
+            //out.reset();
         } catch (IOException e) {
             System.out.println("Error: " + e.getMessage());
             Main.getClientData().getViewManager().setView(ViewType.SERVER_SHUTDOWN);
@@ -134,7 +136,8 @@ public class Client {
                         } else if (packetObject instanceof SendMessageToClientPacket packet) {
                             ClientMessageEvent event = new ClientMessageEvent(packet.getMessage());
                             event.callEvent();
-                            Main.getClientData().getCurrentRoom().sendMessage(event.getMessage());
+                            if(Main.getClientData().getCurrentRoom() != null)
+                                Main.getClientData().getCurrentRoom().sendMessage(event.getMessage());
                             //System.out.println(event.getMessage().getMessage());
                         } else if(packetObject instanceof ShutdownPacket) {
                             Main.getClientData().getViewManager().setView(ViewType.SERVER_SHUTDOWN);

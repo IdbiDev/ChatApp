@@ -8,6 +8,9 @@ import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.utils.Utils;
 
 import java.io.Serializable;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -67,9 +70,9 @@ public class SystemMessage implements IMessage, Serializable {
         this.date = date;
     }
 
-    public boolean isExpired() {
-        return this.date.getTime() > this.expireTime;
-    }
+//    public boolean isExpired() {
+//        return this.date.getTime() > this.expireTime;
+//    }
 
     @Override
     public List<String> getMessage(int width) {
@@ -77,8 +80,8 @@ public class SystemMessage implements IMessage, Serializable {
     }
 
     public boolean isExpired(Date joinDate) {
-        Main.debug(isExpired() + " " + (joinDate.getTime() > this.date.getTime()));
-        return isExpired() && joinDate.getTime() > this.date.getTime();
+        //Main.debug(joinDate.getTime() > this.date.getTime() + "");
+        return joinDate.getTime() > this.date.getTime();
     }
 
     @Override

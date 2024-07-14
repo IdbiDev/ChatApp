@@ -14,6 +14,10 @@ import me.idbi.chatapp.utils.TerminalManager;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.sql.SQLException;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -37,9 +41,6 @@ public class Server {
         this.clientInputStreams = new ConcurrentHashMap<>();
         this.clientOutputStreams = new ConcurrentHashMap<>();
         try {
-            createRoom("GYVAKK admin", null, "admin", 10);
-            createRoom("Beszélgető", null, null, 999);
-            createRoom("Patrik szobája", null, "kys", 2);
             this.serverSocket = new ServerSocket(port);
 
             //this.serverSocket.bind(new InetSocketAddress(port));
@@ -80,6 +81,17 @@ public class Server {
             ObjectOutputStream out = clientOutputStreams.get(sender);
             out.writeObject(packet);
             out.flush();
+            out.reset();
+        } catch (SocketException e) {
+            new ServerClientDisconnectEvent(sockets.get(sender), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
+
+            System.out.println(sockets.get(sender).getName() + " disconnected (Socket error)");
+
+            heartbeatTable.remove(sender);
+            for (Room room : rooms.values()) {
+                room.removeMember(sockets.get(sender));
+            }
+            sockets.remove(sender);
         } catch (IOException e) {
             if (packet instanceof PingPacket) {
                 Socket socketMember;
@@ -164,10 +176,20 @@ public class Server {
                         Object packetObject = clientInputStreams.get(socket).readObject();
 
                         if (packetObject instanceof HandshakePacket packet) {
-                            System.out.println("Loginolt: " + packet.getId());
-                            sockets.put(socket, new Member(packet.getId(), new ArrayList<>(), new HashMap<>()));
-                            sendPacket(socket, new LoginPacket(sockets.get(socket)));
-
+                            Main.getDatabaseManager().getDriver().poll("SELECT * FROM users WHERE name = ?", packet.getId()).thenAcceptAsync(res -> {
+                                try {
+                                    if (res.next()){
+                                        sockets.put(socket, new Member(UUID.fromString(res.getString("uuid")),res.getString("name"), res.getString("displayname"), new ArrayList<>(), new HashMap<>()));
+                                    }else{
+                                        sockets.put(socket, new Member(UUID.randomUUID(),packet.getId(), packet.getId(), new ArrayList<>(), new HashMap<>()));
+                                        Main.getDatabaseManager().getDriver().exec("INSERT INTO users (uuid,name,displayname) VALUES (?,?,?)",sockets.get(socket).getUniqueId().toString(),packet.getId(),packet.getId());
+                                    }
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                }
+                                System.out.println("Loginolt: " + packet.getId());
+                                sendPacket(socket, new LoginPacket(sockets.get(socket)));
+                            });
                         } else if (packetObject instanceof RequestRefreshPacket) {
                             sendPacket(socket, new ReceiveRefreshPacket(this.rooms));
 
@@ -192,7 +214,7 @@ public class Server {
 
                             ServerRoomJoinEvent event = new ServerRoomJoinEvent(sockets.get(socket), selectedRoom, result);
                             if (event.callEvent()) {
-                                sendPacket(socket, new RoomJoinResultPacket(event.getResult(), selectedRoom, new Date()));
+
                                 if (result == RoomJoinResult.SUCCESS) {
                                     selectedRoom.addMember(entry.getValue());
                                     Socket socketMember;
@@ -210,10 +232,9 @@ public class Server {
                                         //Send member joined packet
 
                                     }
-                                    for (Map.Entry<Socket, Member> socketMemberEntry : this.sockets.entrySet()) {
-                                        sendPacket(socketMemberEntry.getKey(), new ReceiveRefreshPacket(this.rooms));
-                                    }
+                                    refreshForKukacEveryoneUwU();
                                 }
+                                sendPacket(socket, new RoomJoinResultPacket(event.getResult(), selectedRoom, new Date()));
                             } else {
                                 sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.CANCELLED, selectedRoom, new Date()));
                             }
@@ -258,7 +279,7 @@ public class Server {
 
                             }
                         } else if (packetObject instanceof CreateRoomPacket packet) {
-                            Room newRoom = new Room(UUID.randomUUID(), packet.getName(), entry.getValue(), packet.getPassword(), new ArrayList<>(), packet.getMaxMembers(), new ArrayList<>(), new ArrayList<>());
+                            Room newRoom = new Room(UUID.randomUUID(), packet.getName(), entry.getValue().getUniqueId(), packet.getPassword(), new ArrayList<>(), packet.getMaxMembers(), new ArrayList<>(), new ArrayList<>());
                             ServerRoomCreateEvent event = new ServerRoomCreateEvent(newRoom);
                             if (event.callEvent()) {
                                 newRoom = event.getRoom();
@@ -269,18 +290,33 @@ public class Server {
                                 newRoom.addMember(entry.getValue());
 
 
-                                SystemMessage msg = new SystemMessage(newRoom, TerminalManager.Color.GREEN.getCode() + SystemMessage.MessageType.ROOM_CREATE.setRoom(newRoom.getName()) + TerminalManager.Color.RESET, new Date(), 1);
+                                SystemMessage msg = new SystemMessage(
+                                        newRoom,
+                                        TerminalManager.Color.GREEN.getCode() + SystemMessage.MessageType.ROOM_CREATE.setRoom(newRoom.getName()) + TerminalManager.Color.RESET,
+                                        new Date(),
+                                        1);
                                 newRoom.getMessages().add(msg);
 
                                 sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.SUCCESS, newRoom, new Date()));
 
-                                for (Map.Entry<Socket, Member> socketMemberEntry : this.sockets.entrySet()) {
-                                    sendPacket(socketMemberEntry.getKey(), new ReceiveRefreshPacket(this.rooms));
+                                refreshForKukacEveryoneUwU();
+
+                            }
+                        }else if(packetObject instanceof RoomEditPacket packet){
+                            Room tempRoom = this.rooms.get(packet.getUniqueId());
+                            if(tempRoom.getOwner() != entry.getValue().getUniqueId()){
+                                continue;
+                            }
+                            switch (packet.getType()) {
+                                case RENAME -> tempRoom.setName((String) packet.getValue());
+                                case SET_PASSWORD -> tempRoom.setPassword(packet.getValue() == "" ? null : (String) packet.getValue());
+                                case TRANSFER_OWNERSHIP -> {
+                                    //tempRoom.setOwner();
                                 }
                             }
                         }
                     }
-                } catch (IOException | ClassNotFoundException | ClassCastException e) {
+                } catch (IOException | ClassNotFoundException | ClassCastException | IllegalStateException  e) {
                     System.out.println("ERROR while reading!");
                     try {
                         sendPacket(socket, new ShutdownPacket());
@@ -301,9 +337,10 @@ public class Server {
         }
     }
 
-    private void createRoom(String name, Member owner, String password, int maxMembers) {
-        UUID uuid = UUID.randomUUID();
-        this.rooms.put(uuid, new Room(uuid, name, owner, password, new CopyOnWriteArrayList<>(), maxMembers, new CopyOnWriteArrayList<>(), new CopyOnWriteArrayList<>()));
+    public void refreshForKukacEveryoneUwU() {
+        for (Member member : sockets.values()) {
+            sendPacket(member, new ReceiveRefreshPacket(this.rooms));
+        }
     }
 
 
@@ -322,8 +359,8 @@ public class Server {
                     Socket socket = server.serverSocket.accept();
                     ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                     server.clientOutputStreams.put(socket, out);
-                    server.sockets.put(socket, new Member("", new ArrayList<>(), new HashMap<>()));
-                    System.out.println("Accepted connection from222222 " + socket.getRemoteSocketAddress());
+                    server.sockets.put(socket, new Member(UUID.randomUUID(),"","", new ArrayList<>(), new HashMap<>()));
+                    System.out.println("Accepted connection from " + socket.getRemoteSocketAddress());
                     server.heartbeatTable.put(socket, new PingPongMember(0, 0));
 
                 } catch (IOException e) {

@@ -494,6 +494,20 @@ public class TerminalManager {
                             }
                             break;
                         }
+                        case ARROW_LEFT: {
+                            if (Main.getClientData().getViewManager().getView() instanceof IView.Tableable) {
+                                Main.getClientData().addRoomListState();
+                                Main.getClientData().getTableManager().refresh();
+                            }
+                            break;
+                        }
+                        case ARROW_RIGHT: {
+                            if (Main.getClientData().getViewManager().getView() instanceof IView.Tableable) {
+                                Main.getClientData().removeRoomListState();
+                                Main.getClientData().getTableManager().refresh();
+                            }
+                            break;
+                        }
                         case OTHER: {
                             if(this.inputMode) {
                                 if(this.inputPrompt.length() + this.inputBuffer.length() > this.terminal.getWidth() - 1) break;

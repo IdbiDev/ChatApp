@@ -11,7 +11,9 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 public class Member implements Serializable {
+    private UUID uniqueId;
     private String name;
+    private String displayName;
     private List<Room> rooms;
     private Map<UUID, String> passwords;
 }

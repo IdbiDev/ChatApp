@@ -38,9 +38,12 @@ public class ClientData {
     @Getter @Setter
     private Member clientMember;
 
+    @Getter @Setter private int roomListState;
+
 
     public ClientData() throws IOException {
         this.scrollState = 0;
+        this.roomListState = 0;
         this.currentRoom = null;
         this.refreshBuffer = false;
         this.refreshChatRoom = false;
@@ -133,6 +136,23 @@ public class ClientData {
     public void setCurrentRoom(Room room, Date joinedDate) {
         this.currentRoom = room;
         this.joinedDate = joinedDate;
+    }
+
+    public int addRoomListState() {
+        int rooms = this.rooms.size();
+        int amountOnPage = this.terminalManager.getTerminal().getHeight() - 5;
+        if ((this.roomListState + 1) % rooms > amountOnPage) {
+            this.roomListState++;
+        }
+        return this.roomListState;
+    }
+
+    public int removeRoomListState() {
+        this.roomListState--;
+        if(this.roomListState < 0) {
+            this.roomListState = 0;
+        }
+        return this.roomListState;
     }
 
     public void load() {

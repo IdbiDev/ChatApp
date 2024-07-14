@@ -2,6 +2,7 @@ package me.idbi.chatapp.networking;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.messages.ClientMessage;
 import me.idbi.chatapp.messages.IMessage;
@@ -14,16 +15,17 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 @Getter
 @AllArgsConstructor
+@Setter
 public class Room implements Serializable {
 
     private UUID uniqueId;
     private String name;
-    private Member owner;
+    private UUID owner;
     private String password;
     private List<Member> members;
     private int maxMembers;
     private List<IMessage> messages;
-    private List<Member> administrators;
+    private List<UUID> administrators;
 
     public boolean isFull() {
         return this.maxMembers != -1 && this.maxMembers <= this.members.size();

@@ -103,5 +103,10 @@
             <artifactId>Notify</artifactId>
             <version>4.5</version>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.3</version>
+        </dependency>
     </dependencies>
 </project>

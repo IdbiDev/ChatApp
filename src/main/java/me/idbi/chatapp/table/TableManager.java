@@ -57,4 +57,16 @@ public class TableManager {
         }
         this.currentTable.getTable().values().forEach(System.out::println);
     }
+
+    public void refresh() {
+        if(this.currentTable == null) return;
+
+        Main.getClientData().getTerminalManager().clear();
+
+        if(this.header != null) {
+            this.header.refreshWidth();
+            this.header.getTable().values().forEach(System.out::println);
+        }
+        this.currentTable.getTable().values().forEach(System.out::println);
+    }
 }
