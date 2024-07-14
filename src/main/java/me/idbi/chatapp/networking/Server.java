@@ -300,6 +300,15 @@ public class Server {
                                 sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.SUCCESS, newRoom, new Date()));
 
                                 refreshForKukacEveryoneUwU();
+                                Main.getDatabaseManager().getDriver().exec(
+                                        "INSERT INTO rooms (uuid,name,owner,password,maxmembers,administrators) VALUES (?,?,?,?,?,?)",
+                                        newRoom.getUniqueId().toString(),
+                                        newRoom.getName(),
+                                        newRoom.getOwner() != null ? newRoom.getOwner().toString() : "",
+                                        newRoom.getPassword() != null ? newRoom.getPassword() : "",
+                                        newRoom.getMaxMembers(),
+                                        new String[]{}
+                                );
 
                             }
                         }else if(packetObject instanceof RoomEditPacket packet){

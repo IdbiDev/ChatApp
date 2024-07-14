@@ -140,8 +140,10 @@ public class ClientData {
 
     public int addRoomListState() {
         int rooms = this.rooms.size();
-        int amountOnPage = this.terminalManager.getTerminal().getHeight() - 5;
-        if ((this.roomListState + 1) % rooms > amountOnPage) {
+        int amountOnPage = this.terminalManager.getTerminal().getHeight() - 9;
+        Main.debug("Prev state: " + this.roomListState);
+        if (rooms % ((this.roomListState + 1) * amountOnPage) > 0 && ((this.roomListState + 1) * amountOnPage) < rooms) {
+            Main.debug("Added state");
             this.roomListState++;
         }
         return this.roomListState;

@@ -18,6 +18,7 @@ import me.idbi.chatapp.view.ViewType;
 import java.io.*;
 import java.net.Socket;
 import java.time.ZoneId;
+import java.util.UUID;
 
 public class Client {
 
@@ -41,14 +42,14 @@ public class Client {
 
     }
 
-    public void panic() throws IOException {
+    public boolean panic() throws IOException {
         canRun = false;
         out = null;
         this.in = null;
         this.threadlistener.interrupt();
         this.socket.close();
         this.socket = null;
-        connect();
+        return connect();
     }
     public boolean connect() {
         try {
@@ -125,8 +126,11 @@ public class Client {
 
                         if (packetObject instanceof LoginPacket packet) {
                             Main.getClientData().setClientMember(packet.getLoginMember());
+                            packet.getLoginMember().savePasswords();
+                            packet.getLoginMember().loadPasswords();
                             new ClientLoginEvent(packet.getLoginMember()).callEvent();
                         } else if (packetObject instanceof ReceiveRefreshPacket packet) {
+                            Main.debug("packet refresh" + packet.getRooms().size());
                             new ClientRefreshEvent(packet.getRooms()).callEvent();
                         } else if (packetObject instanceof RoomJoinResultPacket packet) {
                             ClientRoomJoinEvent joinEvent = new ClientRoomJoinEvent(packet.getRoom(), packet.getResult(), packet.getJoinAt());
@@ -150,9 +154,12 @@ public class Client {
                     System.out.println("ERROR while reading!");
                     e.printStackTrace();
                     try {
-                        client.panic();
+                        if(!client.panic()){
+                            Main.getClientData().getViewManager().setView(ViewType.SERVER_SHUTDOWN);
+                        }
                     } catch (IOException ex) {
                         System.out.println("CLIENT PANIC EXCEPTION: " + ex.getMessage());
+                        System.exit(-1);
                         //throw new RuntimeException(ex);
                     }
                 }

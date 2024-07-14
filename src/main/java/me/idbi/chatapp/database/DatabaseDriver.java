@@ -6,6 +6,7 @@ import me.idbi.chatapp.Main;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
@@ -31,9 +32,14 @@ public class DatabaseDriver {
                     statement.setDate(paramcount, new java.sql.Date(d.getTime()));
                 }else if (o instanceof Long d){
                     statement.setLong(paramcount,d);
+                }else if (o instanceof String[] d){
+                    statement.setArray(paramcount, Main.getDatabaseManager().getConnection().createArrayOf("text", d));
+                } else if(o instanceof UUID d) {
+                    statement.setString(paramcount, d.toString());
                 }
                 paramcount++;
             }
+
             System.out.println(statement);
             cmp.complete(statement.executeUpdate());
 
@@ -65,6 +71,10 @@ public class DatabaseDriver {
                     statement.setDate(paramcount, new java.sql.Date(d.getTime()));
                 } else if (o instanceof Long d){
                     statement.setLong(paramcount,d);
+                } else if (o instanceof String[] d) {
+                    statement.setArray(paramcount, Main.getDatabaseManager().getConnection().createArrayOf("text", d));
+                } else if(o instanceof UUID d) {
+                    statement.setString(paramcount, d.toString());
                 }
                 paramcount++;
             }
