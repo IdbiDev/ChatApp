@@ -495,16 +495,16 @@ public class TerminalManager {
                             break;
                         }
                         case ARROW_LEFT: {
-                            if (Main.getClientData().getViewManager().getView() instanceof IView.Tableable) {
-                                Main.getClientData().addRoomListState();
-                                Main.getClientData().getTableManager().refresh();
+                            if (Main.getClientData().getViewManager().getView() instanceof IView.Tableable t) {
+                                Main.getClientData().removeRoomListState();
+                                Main.getClientData().getViewManager().refresh();
                             }
                             break;
                         }
                         case ARROW_RIGHT: {
-                            if (Main.getClientData().getViewManager().getView() instanceof IView.Tableable) {
-                                Main.getClientData().removeRoomListState();
-                                Main.getClientData().getTableManager().refresh();
+                            if (Main.getClientData().getViewManager().getView() instanceof IView.Tableable t) {
+                                Main.getClientData().addRoomListState();
+                                Main.getClientData().getViewManager().refresh();
                             }
                             break;
                         }

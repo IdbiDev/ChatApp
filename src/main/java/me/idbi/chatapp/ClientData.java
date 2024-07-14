@@ -146,6 +146,7 @@ public class ClientData {
             Main.debug("Added state");
             this.roomListState++;
         }
+        Main.debug("New state: " + this.roomListState);
         return this.roomListState;
     }
 

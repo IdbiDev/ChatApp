@@ -3,14 +3,9 @@ package me.idbi.chatapp.view.viewmenus;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.packets.client.CreateRoomPacket;
 import me.idbi.chatapp.packets.client.RequestRefreshPacket;
-import me.idbi.chatapp.table.Row;
 import me.idbi.chatapp.view.IView;
 import me.idbi.chatapp.view.ViewType;
 
-import javax.management.InvalidAttributeValueException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -83,9 +78,7 @@ public class RoomCreateView implements IView {
         CreateRoomPacket packet = new CreateRoomPacket(name.get(), password.get(), maxMembers);
         Main.debug(packet.toString());
         RoomCreateConfirmView view = (RoomCreateConfirmView) ViewType.ROOM_CREATE_CONFIRM.getView();
-        Main.debug("view dobne");
         view.setPacket(packet);
-        Main.debug("Packed sent");
         Main.getClientData().getViewManager().setView(view);
 
         //Main.getClient().sendPacket(packet);

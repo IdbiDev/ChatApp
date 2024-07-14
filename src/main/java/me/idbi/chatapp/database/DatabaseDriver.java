@@ -3,12 +3,14 @@ package me.idbi.chatapp.database;
 import dorkbox.util.Sys;
 import me.idbi.chatapp.Main;
 
+import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class DatabaseDriver {
@@ -67,9 +69,9 @@ public class DatabaseDriver {
                     statement.setFloat(paramcount,d);
                 } else if (o instanceof Double d){
                     statement.setDouble(paramcount,d);
-                } else if (o instanceof Date d){
+                } else if (o instanceof Date d) {
                     statement.setDate(paramcount, new java.sql.Date(d.getTime()));
-                } else if (o instanceof Long d){
+                } else if (o instanceof Long d) {
                     statement.setLong(paramcount,d);
                 } else if (o instanceof String[] d) {
                     statement.setArray(paramcount, Main.getDatabaseManager().getConnection().createArrayOf("text", d));

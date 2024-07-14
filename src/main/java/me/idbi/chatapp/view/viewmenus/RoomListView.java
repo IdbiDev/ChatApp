@@ -52,7 +52,7 @@ public class RoomListView implements IView, IView.Tableable {
     @Override
     public void update() {
         List<Room> rooms = getPageRooms(); // Main.getClientData().getRooms().values().stream().sorted(Comparator.comparing(Room::getName)).toList();
-        if (!rooms.isEmpty()) {
+       // if (!rooms.isEmpty()) {
             Column name = new Column();
             name.addRow(new Row("Név", false, false, Row.Aligment.CENTER));
 
@@ -65,7 +65,6 @@ public class RoomListView implements IView, IView.Tableable {
             boolean firstSelected = true;
             for (Room room : rooms) {
                 name.addRow(new Row(room.getName().strip(), true, firstSelected));
-                Main.debug("'" + room.getName() + "'");
                 firstSelected = false;
             }
 
@@ -88,31 +87,39 @@ public class RoomListView implements IView, IView.Tableable {
                 }
             }
 
-            name.addRow(new Row("Szoba készítés", true, false, Row.Aligment.LEFT));
+            name.addRow(new Row("Szoba készítés", true, rooms.isEmpty(), Row.Aligment.LEFT));
             infos.addRow(new Row(" ", false, false, Row.Aligment.CENTER));
             psw.addRow(new Row(" ", false, false, Row.Aligment.CENTER));
 
             Table header = new Table();
             Column column = new Column(el -> el.setWidth(Main.getClientData().getTerminalManager().getWidth() - 4));
-            column.addRow(new Row("Szobák | " + Main.getClientData().getRoomListState(), false, false, Row.Aligment.CENTER));
+            column.addRow(new Row("Szobák | " + (Main.getClientData().getRoomListState() + 1), false, false, Row.Aligment.CENTER));
             header.addColumn(column);
             Main.getClientData().getTableManager().setHeader(header);
             Main.getClientData().getTableManager().setTable(table);
-        }
+       // }
     }
 
     private List<Room> getPageRooms() {
         List<Room> rooms = Main.getClientData().getRooms().values().stream().sorted(Comparator.comparing(Room::getName)).toList();
 
-        int state = Main.getClientData().getScrollState();
-        int amountOnPage = Main.getClientData().getTerminalManager().getTerminal().getHeight() - 5;
+        int state = Main.getClientData().getRoomListState();
+        int amountOnPage = Main.getClientData().getTerminalManager().getTerminal().getHeight() - 9;
 
-        int idx1 = rooms.size() - state * amountOnPage;
-        int idx2 = rooms.size() - amountOnPage * amountOnPage - amountOnPage;
+        Main.debug("1");
+        if(rooms.size() > amountOnPage) {
 
-        idx2 = Math.max(0, idx2);
-        idx1 = Math.min(Math.max(idx1, amountOnPage), rooms.size());
+            Main.debug("2");
+            int idx1 = state * amountOnPage;
+            int idx2 = state * amountOnPage + amountOnPage;
 
-        return rooms.subList(idx2, idx1);
+            Main.debug("A: " + idx1 + " " + idx2);
+            idx2 = Math.min(idx2, rooms.size());
+
+            Main.debug("B: " + idx1 + " " + idx2);
+            Main.debug("Size: " + rooms.size());
+            return rooms.subList(idx1, idx2);
+        }
+        return rooms;
     }
 }
