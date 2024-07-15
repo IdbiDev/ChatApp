@@ -35,7 +35,7 @@ public class LoginView implements IView {
 
     @Override
     public void start() {
-        Main.getClientData().getTerminalManager().center("Chatapp+", TerminalManager.Style.BOLD,TerminalManager.Color.CYAN);
+        Main.getClientData().getTerminalManager().center("Chatapp Demo", TerminalManager.Style.BOLD, TerminalManager.Color.CYAN);
         System.out.println();
         Main.getClientData().getTerminalManager().center("Csatlakozás " + Main.getClient().getName() + " névvel.", TerminalManager.Style.BOLD);
         System.out.println();

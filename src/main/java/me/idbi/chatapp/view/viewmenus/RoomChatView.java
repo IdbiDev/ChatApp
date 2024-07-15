@@ -53,6 +53,7 @@ public class RoomChatView implements IView {
     public void update() {
         for (int i = 0; i <= 1; i++) {
             if(Main.getClientData().isRefreshChatRoom()) {
+
                 int termHeight = Main.getClientData().getTerminalManager().getHeight();
                 Main.getClientData().getTerminalManager().home();
 

@@ -13,7 +13,7 @@ import java.net.URLClassLoader;
 
 public class AutoLoadMain {
     @Getter
-    private static boolean useAutoupdate = true;
+    private static boolean useAutoupdate = false;
     public static void main(String[] args) throws IOException, URISyntaxException, InterruptedException, ClassNotFoundException, InvocationTargetException, AWTException, NoSuchMethodException, IllegalAccessException {
         if(useAutoupdate) {
             URL myJarFile = new URI("http://192.168.1.112:8000/chatapp-1.0-SNAPSHOT-me.idbi.chatapp.jar").toURL();

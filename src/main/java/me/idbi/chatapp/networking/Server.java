@@ -3,6 +3,7 @@ package me.idbi.chatapp.networking;
 import lombok.Getter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.events.servers.*;
+import me.idbi.chatapp.messages.ClientMessage;
 import me.idbi.chatapp.messages.IMessage;
 import me.idbi.chatapp.messages.SystemMessage;
 import me.idbi.chatapp.packets.ServerPacket;
@@ -73,7 +74,7 @@ public class Server {
         if (getSocketByMember(sender) != null)
             sendPacket(getSocketByMember(sender), packet);
         else
-            System.out.println("cica nem egyenlő cicca");
+            System.out.println("Member nem létezik?");
     }
 
     private void sendPacket(Socket sender, ServerPacket packet) {
@@ -85,7 +86,7 @@ public class Server {
         } catch (SocketException e) {
             new ServerClientDisconnectEvent(sockets.get(sender), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
 
-            System.out.println(sockets.get(sender).getName() + " disconnected (Socket error)");
+            System.out.println(sockets.get(sender).getName() + " disconnected (Socket disconnected)");
 
             heartbeatTable.remove(sender);
             for (Room room : rooms.values()) {
@@ -187,7 +188,7 @@ public class Server {
                                 } catch (SQLException e) {
                                     e.printStackTrace();
                                 }
-                                System.out.println("Loginolt: " + packet.getId());
+                                System.out.println("Client login: " + packet.getId());
                                 sendPacket(socket, new LoginPacket(sockets.get(socket)));
                             });
                         } else if (packetObject instanceof RequestRefreshPacket) {
@@ -220,7 +221,9 @@ public class Server {
                                     Socket socketMember;
                                     SystemMessage msg = new SystemMessage(
                                             selectedRoom,
-                                            SystemMessage.MessageType.JOIN.setMember(entry.getValue())
+                                            SystemMessage.MessageType.JOIN.setMember(entry.getValue()),
+                                            new Date(),
+                                            1
                                     );
                                     selectedRoom.getMessages().add(msg);
                                     for (Member member : selectedRoom.getMembers()) {
@@ -228,6 +231,7 @@ public class Server {
                                             continue;
                                         }
                                         sendPacket(socketMember, new SendMessageToClientPacket(msg));
+
 
                                         //Send member joined packet
 
@@ -322,7 +326,7 @@ public class Server {
                         }
                     }
                 } catch (IOException | ClassNotFoundException | ClassCastException | IllegalStateException  e) {
-                    System.out.println("ERROR while reading!");
+                    System.out.println("Error while parsing client!");
                     try {
                         sendPacket(socket, new ShutdownPacket());
                         clientInputStreams.get(socket).close();
@@ -334,7 +338,7 @@ public class Server {
                         }
                         socket.close();
                     } catch (IOException ex) {
-                        System.out.println("GÁZ VAN");
+                        System.out.println("Error while handling shutdown packet!");
                     }
                     e.printStackTrace();
                 }
@@ -359,17 +363,24 @@ public class Server {
 
         @Override
         public void run() {
+            Socket socket = null;
             while (true) {
                 try {
-                    Socket socket = server.serverSocket.accept();
+                    socket = this.server.serverSocket.accept();
                     ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                     this.server.clientOutputStreams.put(socket, out);
                     this.server.sockets.put(socket, new Member(UUID.randomUUID(),"","", new ArrayList<>(), new HashMap<>()));
                     System.out.println("Accepted connection from " + socket.getRemoteSocketAddress());
-                    server.heartbeatTable.put(socket, new PingPongMember(0, 0));
-
+                    this.server.heartbeatTable.put(socket, new PingPongMember(0, 0));
+                    socket = null;
                 } catch (IOException e) {
-                    System.out.println("Accept failed");
+                    System.out.println("Accept failed!");
+                    if(socket != null){
+                        this.server.clientOutputStreams.remove(socket);
+                        this.server.sockets.remove(socket);
+                        this.server.heartbeatTable.remove(socket);
+                        socket = null;
+                    }
                     e.printStackTrace();
                 }
             }
