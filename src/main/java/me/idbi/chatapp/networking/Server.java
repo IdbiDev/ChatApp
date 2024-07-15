@@ -222,6 +222,7 @@ public class Server {
                                             selectedRoom,
                                             SystemMessage.MessageType.JOIN.setMember(entry.getValue())
                                     );
+                                    selectedRoom.getMessages().add(msg);
                                     for (Member member : selectedRoom.getMembers()) {
                                         if ((socketMember = getSocketByMember(member)) == null) {
                                             continue;
@@ -362,8 +363,8 @@ public class Server {
                 try {
                     Socket socket = server.serverSocket.accept();
                     ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-                    server.clientOutputStreams.put(socket, out);
-                    server.sockets.put(socket, new Member(UUID.randomUUID(),"","", new ArrayList<>(), new HashMap<>()));
+                    this.server.clientOutputStreams.put(socket, out);
+                    this.server.sockets.put(socket, new Member(UUID.randomUUID(),"","", new ArrayList<>(), new HashMap<>()));
                     System.out.println("Accepted connection from " + socket.getRemoteSocketAddress());
                     server.heartbeatTable.put(socket, new PingPongMember(0, 0));
 
@@ -389,33 +390,33 @@ public class Server {
 
                 try {
                     Thread.sleep(1000);
-                    for (Map.Entry<Socket, PingPongMember> entry : server.heartbeatTable.entrySet()) {
+                    for (Map.Entry<Socket, PingPongMember> entry : this.server.heartbeatTable.entrySet()) {
                         if (entry.getValue().getLastPing() + 5500 <= System.currentTimeMillis()) {
                             entry.getValue().setFailCount(entry.getValue().getFailCount() + 1);
                             if (entry.getValue().getFailCount() > 5) {
                                 // disconnect
                                 Socket socketMember;
-                                for (Room room : server.sockets.get(entry.getKey()).getRooms()) {
+                                for (Room room : this.server.sockets.get(entry.getKey()).getRooms()) {
                                     for (Member m : room.getMembers()) {
-                                        if ((socketMember = server.getSocketByMember(m)) == null || socketMember == entry.getKey()) {
+                                        if ((socketMember = this.server.getSocketByMember(m)) == null || socketMember == entry.getKey()) {
                                             continue;
                                         }
                                         server.sendPacket(socketMember, new SendMessageToClientPacket(
                                                 new SystemMessage(
                                                         room,
-                                                        SystemMessage.MessageType.QUIT.setMember(server.sockets.get(entry.getKey())),
+                                                        SystemMessage.MessageType.QUIT.setMember(this.server.sockets.get(entry.getKey())),
                                                         1
                                                 ))
                                         );
                                     }
                                 }
-                                new ServerClientDisconnectEvent(server.sockets.get(entry.getKey()), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
-                                System.out.println(server.sockets.get(entry.getKey()).getName() + " disconnected from timeout");
-                                server.heartbeatTable.remove(entry.getKey());
-                                for (Room room : server.rooms.values()) {
-                                    room.removeMember(server.sockets.get(entry.getKey()));
+                                new ServerClientDisconnectEvent(this.server.sockets.get(entry.getKey()), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
+                                System.out.println(this.server.sockets.get(entry.getKey()).getName() + " disconnected from timeout");
+                                this.server.heartbeatTable.remove(entry.getKey());
+                                for (Room room : this.server.rooms.values()) {
+                                    room.removeMember(this.server.sockets.get(entry.getKey()));
                                 }
-                                server.sockets.remove(entry.getKey());
+                                this.server.sockets.remove(entry.getKey());
                                 continue;
                             }
                         }

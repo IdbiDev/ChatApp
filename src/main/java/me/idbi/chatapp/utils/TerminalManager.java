@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class TerminalManager {
     @Getter
@@ -332,7 +333,12 @@ public class TerminalManager {
          */
         @Setter @Getter private String chatBuffer;
         @Setter @Getter private String inputBuffer;
+
+        /**
+         * Input prefix
+         */
         @Setter @Getter private String inputPrompt;
+        @Getter private StringPatterns inputPattern;
         @Getter @Setter private boolean inputMode;
         @Getter @Setter private boolean prepareExit;
 
@@ -341,8 +347,18 @@ public class TerminalManager {
             this.chatBuffer = "";
             this.inputBuffer = "";
             this.inputPrompt = "";
+            this.inputPattern = StringPatterns.NONE;
             this.inputMode = false;
+        }
 
+        public void setInputMode(boolean state, StringPatterns pattern) {
+            this.inputMode = state;
+            this.inputPattern = pattern;
+        }
+
+        public void setInputMode(boolean state) {
+            this.inputMode = state;
+            this.inputPattern = StringPatterns.NONE;
         }
 
         @Override
@@ -366,7 +382,7 @@ public class TerminalManager {
                         lastButton += ((char) (int) keys.get(i)) + "";
                     }
 
-                    lastButton = lastButton.strip();
+                    lastButton = lastButton.replace("\n", "");
                     KeyboardButtons button = KeyboardButtons.OTHER;
                     for (KeyboardButtons value : KeyboardButtons.values()) {
                         if (!keys.equals(value.getKeys())) continue;
@@ -377,7 +393,7 @@ public class TerminalManager {
                     switch (button) {
                         case ESCAPE: {
                             if(this.inputMode) {
-                                this.inputMode = false;https://www.youtube.com/watch?v=ytTw4KZnop8
+                                this.inputMode = false; https://www.youtube.com/watch?v=ytTw4KZnop8
                                 this.prepareExit = true;
                             } else if (Main.getClientData().getViewManager().getView() instanceof RoomJoinView) {
                                 this.chatBuffer = "";
@@ -416,11 +432,13 @@ public class TerminalManager {
                                         if (Main.getClientData().getTableManager().getCurrentTable().getSelectedRow() == null) {
                                             break;
                                         }
+
                                         String selectedRoomName = Main.getClientData().getTableManager().getCurrentTable().getSelectedRow().getLine();
                                         if (selectedRoomName.equals("Szoba készítés")) {
                                             Main.getClientData().getViewManager().setView(ViewType.ROOM_CREATE);
                                             break;
                                         }
+
                                         Room selectedRoom = Main.getClientData().getRooms()
                                                 .values()
                                                 .stream()
@@ -518,15 +536,16 @@ public class TerminalManager {
                         case OTHER: {
                             if(this.inputMode) {
                                 if(this.inputPrompt.length() + this.inputBuffer.length() + lastButton.length() > this.terminal.getWidth() - 1) break;
+                                if(!this.inputPattern.match(this.inputBuffer + lastButton)) break;
                                 this.inputBuffer += lastButton;
                             } else {
                                 if (!terminal.isCanWrite()) {
                                     break;
                                 }
-                                if ((Main.getClient().getName() + " > ").length() + chatBuffer.length() + lastButton.length() + 17 > terminal.getWidth() - 1) {
+                                if ((Main.getClient().getName() + " > ").length() + this.chatBuffer.length() + lastButton.length() + 17 > this.terminal.getWidth() - 1) {
                                     break;
                                 }
-                                chatBuffer += lastButton;
+                                this.chatBuffer += lastButton;
                                 Main.getClientData().refreshBuffer();
                             }
                             break;

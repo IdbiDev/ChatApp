@@ -44,7 +44,7 @@ public class ServerStartEvent extends Event {
                             null,
                             null,
                             new CopyOnWriteArrayList<>(),
-                            -1,
+                            0,
                             new CopyOnWriteArrayList<>(),
                             new CopyOnWriteArrayList<>()
                     );

@@ -25,9 +25,9 @@ public class DatabaseManager {
     private final DatabaseDriver driver;
 
     public DatabaseManager() {
-        this.host = "192.168.1.104";
+        this.host = "localhost";
         this.port = 3306;
-        this.database = "chatapp";
+        this.database = "postgres";
         this.username = "postgres";
         this.password = "admin";
         this.parameters = "";

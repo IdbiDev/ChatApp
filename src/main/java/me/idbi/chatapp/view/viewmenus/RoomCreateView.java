@@ -3,6 +3,8 @@ package me.idbi.chatapp.view.viewmenus;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.packets.client.CreateRoomPacket;
 import me.idbi.chatapp.packets.client.RequestRefreshPacket;
+import me.idbi.chatapp.utils.StringPatterns;
+import me.idbi.chatapp.utils.Utils;
 import me.idbi.chatapp.view.IView;
 import me.idbi.chatapp.view.ViewType;
 
@@ -47,30 +49,28 @@ public class RoomCreateView implements IView {
 
         Main.getClientData().getTerminalManager().clear();
         AtomicReference<String> name = new AtomicReference<>();
-        while(name.get() == null) {
+        while(isNull(name.get())) {
             if(exitBoolean.get()) return;
-            Main.getClientData().getInputManager().getInput("Szoba neve > ", name::set, exit);
+            Main.getClientData().getInputManager().getInput("Szoba neve > ", StringPatterns.NAME, name::set, exit);
         }
 
         if(exitBoolean.get()) return;
         AtomicReference<String> maxMembersString = new AtomicReference<>();
-        do {
+        while (isNull(maxMembersString.get())) {
             if(exitBoolean.get()) return;
-            Main.getClientData().getInputManager().getInput("Maximum felhasználók > ", maxMembersString::set, exit);
+            Main.getClientData().getInputManager().getInput("Maximum felhasználók > ", StringPatterns.NUMBER, maxMembersString::set, exit);
         }
-        while (!isNull(maxMembersString.get()) && !maxMembersString.get().matches("^[0-9]+$"));
 
         if(exitBoolean.get()) return;
-        int maxMembers = -1;
+        int maxMembers = 0;
         if(!isNull(maxMembersString.get()))
-            maxMembers = Math.max(-1, Integer.parseInt(maxMembersString.get()));
+            maxMembers = Math.max(0, Integer.parseInt(maxMembersString.get()));
 
         AtomicReference<String> password = new AtomicReference<>();
-        do {
+        while (isNull(password.get())) {
             if(exitBoolean.get()) return;
-            Main.getClientData().getInputManager().getInput("Jelszó > ", password::set, exit);
+            Main.getClientData().getInputManager().getInput("Jelszó > ", StringPatterns.PASSWORD, password::set, exit);
         }
-        while (!isNull(password.get()) && !password.get().matches("^[!-~]+$"));
 
         if(exitBoolean.get()) return;
 

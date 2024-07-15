@@ -28,7 +28,7 @@ public class Room implements Serializable {
     private List<UUID> administrators;
 
     public boolean isFull() {
-        return this.maxMembers != -1 && this.maxMembers <= this.members.size();
+        return this.maxMembers != 0 && this.maxMembers <= this.members.size();
     }
 
     public boolean hasPassword() {

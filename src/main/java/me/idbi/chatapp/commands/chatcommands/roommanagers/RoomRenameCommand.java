@@ -4,6 +4,7 @@ import me.idbi.chatapp.commands.CommandExecutor;
 import me.idbi.chatapp.networking.Member;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.notifications.Notification;
+import me.idbi.chatapp.utils.StringPatterns;
 import me.idbi.chatapp.utils.Utils;
 
 public class RoomRenameCommand implements CommandExecutor {
@@ -12,7 +13,7 @@ public class RoomRenameCommand implements CommandExecutor {
         if(!room.getOwner().equals(sender)) return false;
         if(args.length != 1) return false;
 
-        if(!Utils.getNamePattern().matcher(args[0]).matches()) {
+        if(!StringPatterns.NAME.match(args[0])) {
             Notification.Notifications.WRONG_RENAME.send();
             return false;
         }

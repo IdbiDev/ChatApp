@@ -69,7 +69,7 @@ public class RoomListView implements IView, IView.Tableable {
             }
 
             for (Room room : rooms) {
-                String memberInfos = room.getMembers().size() + (room.getMaxMembers() == -1 ? "" : "/" + room.getMaxMembers());
+                String memberInfos = room.getMembers().size() + (room.getMaxMembers() == 0 ? "" : "/" + room.getMaxMembers());
                 infos.addRow(new Row(memberInfos, false, false, Row.Aligment.CENTER));
             }
 

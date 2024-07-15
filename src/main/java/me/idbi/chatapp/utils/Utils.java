@@ -10,11 +10,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
-
-    @Getter private static final Pattern namePattern = Pattern.compile("^[!-~]{16}$");
-    @Getter private static final Pattern passwordPattern = Pattern.compile("^[!-~]{16}$");
-    @Getter private static final Pattern numberPattern = Pattern.compile("^[0-9]{16}$");
-
     public static List<String> splitForWidth(String message, int width) {
         List<String> lines = new ArrayList<>();
         try {

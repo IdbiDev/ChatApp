@@ -1,11 +1,8 @@
 package me.idbi.chatapp;
 
-import dorkbox.notify.Notify;
-import dorkbox.util.Sys;
 import lombok.Getter;
 import me.idbi.chatapp.commands.CommandManager;
 import me.idbi.chatapp.commands.chatcommands.LeaveCommand;
-import me.idbi.chatapp.database.DatabaseDriver;
 import me.idbi.chatapp.database.DatabaseManager;
 import me.idbi.chatapp.eventmanagers.EventManager;
 import me.idbi.chatapp.eventmanagers.interfaces.Listener;
@@ -15,22 +12,14 @@ import me.idbi.chatapp.notifications.Notification;
 import me.idbi.chatapp.packets.client.DebugMessagePacket;
 import me.idbi.chatapp.view.ViewType;
 import org.apache.commons.cli.*;
-import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
-import org.jline.utils.NonBlockingReader;
 
 import java.awt.*;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.Scanner;
-import java.util.UUID;
 
 
 
@@ -48,11 +37,10 @@ public class Main implements Listener {
     @Getter private static DatabaseManager databaseManager;
 
 
-    public static void debug(String message)
-    {
-        try{
+    public static void debug(String message) {
+        try {
             Main.getClient().sendPacket(new DebugMessagePacket(message));
-        }catch(Exception ex){
+        } catch(Exception ex){
 
         }
 
@@ -77,7 +65,6 @@ public class Main implements Listener {
 //            System.out.println(nonBlockingReader.read());y
 //        }
 
-        System.out.println("A ASDASDASD NAYÁDATTTTT");
         Image image = Toolkit.getDefaultToolkit().createImage("info.png");
         Notification.icon = new TrayIcon(image, "CICA");
         //Let the system resize the image if needed
@@ -111,7 +98,6 @@ public class Main implements Listener {
         CommandLine cmd = null;
 
         System.setProperty("jna.encoding", "UTF8");
-
 
         try {
             cmd = parser.parse(options, args);

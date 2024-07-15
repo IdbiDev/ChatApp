@@ -39,6 +39,7 @@ public class LoginView implements IView {
         System.out.println();
         Main.getClientData().getTerminalManager().center("Csatlakozás " + Main.getClient().getName() + " névvel.", TerminalManager.Style.BOLD);
         System.out.println();
+
         if (!Main.getClient().connect()) {
             Main.getClientData().getTerminalManager().center("Sikertelen csatlakozás. :(", TerminalManager.Style.BOLD, TerminalManager.Color.RED);
             try {

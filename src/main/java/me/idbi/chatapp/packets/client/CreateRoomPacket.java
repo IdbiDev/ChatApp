@@ -13,6 +13,6 @@ public class CreateRoomPacket extends ClientPacket {
     private int maxMembers;
 
     public String getFormattedMaxMembers() {
-        return this.maxMembers == -1 ? "Végtelen" : this.maxMembers + "";
+        return this.maxMembers == 0 ? "Végtelen" : this.maxMembers + "";
     }
 }
