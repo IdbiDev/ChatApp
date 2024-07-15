@@ -65,6 +65,13 @@ public class SystemMessage implements IMessage, Serializable {
         this.expireTime = expireTime + this.date.getTime();
     }
 
+    public SystemMessage(Room room, String message) {
+        this.room = room;
+        this.message = message;
+        this.date = new Date();
+        this.expireTime = 0;
+    }
+
     @Override
     public void setDate(Date date) {
         this.date = date;
@@ -80,6 +87,7 @@ public class SystemMessage implements IMessage, Serializable {
     }
 
     public boolean isExpired(Date joinDate) {
+        if(this.expireTime == 0) return false;
         //Main.debug(joinDate.getTime() > this.date.getTime() + "");
         return joinDate.getTime() > this.date.getTime();
     }

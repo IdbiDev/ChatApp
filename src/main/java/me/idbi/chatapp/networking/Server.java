@@ -220,8 +220,7 @@ public class Server {
                                     Socket socketMember;
                                     SystemMessage msg = new SystemMessage(
                                             selectedRoom,
-                                            SystemMessage.MessageType.JOIN.setMember(entry.getValue()),
-                                            1
+                                            SystemMessage.MessageType.JOIN.setMember(entry.getValue())
                                     );
                                     for (Member member : selectedRoom.getMembers()) {
                                         if ((socketMember = getSocketByMember(member)) == null) {
