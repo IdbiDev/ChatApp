@@ -23,7 +23,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>me.idbi.chatapp.Main</mainClass>
+                            <mainClass>me.idbi.chatapp.AutoLoadMain</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

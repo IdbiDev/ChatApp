@@ -25,9 +25,9 @@ public class DatabaseManager {
     private final DatabaseDriver driver;
 
     public DatabaseManager() {
-        this.host = "localhost";
-        this.port = 5432;
-        this.database = "postgres";
+        this.host = "192.168.1.104";
+        this.port = 3306;
+        this.database = "chatapp";
         this.username = "postgres";
         this.password = "admin";
         this.parameters = "";
@@ -38,7 +38,7 @@ public class DatabaseManager {
         try {
             Class.forName("org.postgresql.Driver");
             this.connection = DriverManager.getConnection(
-                    "jdbc:postgresql://" + this.host + ":" + this.port + "/" + this.database + parameters, this.username, this.password
+                    "jdbc:postgresql://" + this.host + ":" + this.port + "/" + this.database + this.parameters, this.username, this.password
             );
             if (this.connection.isValid(0)) {
                 System.out.println("Database connected");

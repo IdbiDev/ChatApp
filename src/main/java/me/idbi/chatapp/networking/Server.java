@@ -249,8 +249,6 @@ public class Server {
                             IMessage msg = event.getMessage();
                             msg.setDate(new Date());
 
-                            selectedRoom.getMessages().add(msg);
-
                             System.out.println(msg.getMessage());
                             String[] args = event.getMessage().getRawMessage().split(" ");
                             if (event.getMessage().getRawMessage().startsWith("/")) {
@@ -267,16 +265,14 @@ public class Server {
                                 continue;
                             }
                             if (event.callEvent()) {
-
                                 Socket socketMember;
+                                selectedRoom.getMessages().add(event.getMessage());
                                 for (Member member : selectedRoom.getMembers()) {
                                     if ((socketMember = getSocketByMember(member)) == null) {
                                         continue;
                                     }
                                     sendPacket(socketMember, new SendMessageToClientPacket(event.getMessage()));
                                 }
-
-
                             }
                         } else if (packetObject instanceof CreateRoomPacket packet) {
                             Room newRoom = new Room(UUID.randomUUID(), packet.getName(), entry.getValue().getUniqueId(), packet.getPassword(), new ArrayList<>(), packet.getMaxMembers(), new ArrayList<>(), new ArrayList<>());

@@ -9,6 +9,7 @@ import me.idbi.chatapp.messages.ClientMessage;
 import me.idbi.chatapp.messages.IMessage;
 import me.idbi.chatapp.messages.SystemMessage;
 import me.idbi.chatapp.networking.Room;
+import me.idbi.chatapp.notifications.Notification;
 import me.idbi.chatapp.packets.client.DebugMessagePacket;
 import me.idbi.chatapp.packets.client.RequestRefreshPacket;
 import me.idbi.chatapp.packets.client.RoomJoinPacket;
@@ -358,9 +359,14 @@ public class TerminalManager {
                         keys.add(nonBlockingReader.read());
                     }
 
-                    if(keys.isEmpty()) continue;
+                    if (keys.isEmpty()) continue;
 
-                    String lastButton = ((char) (int) keys.get(0)) + "";
+                    String lastButton = "";
+                    for (int i = 0; i < keys.size(); i++) {
+                        lastButton += ((char) (int) keys.get(i)) + "";
+                    }
+
+                    lastButton = lastButton.strip();
                     KeyboardButtons button = KeyboardButtons.OTHER;
                     for (KeyboardButtons value : KeyboardButtons.values()) {
                         if (!keys.equals(value.getKeys())) continue;
@@ -422,7 +428,7 @@ public class TerminalManager {
                                                 .findAny()
                                                 .orElse(null);
                                         if (selectedRoom == null) break;
-                                        if (!selectedRoom.hasPassword()) {
+                                        if (!selectedRoom.hasPassword() || Main.getClientData().getClientMember().hasPassword(selectedRoom)) {
                                             Main.getClient().sendPacket(new RoomJoinPacket(selectedRoom.getUniqueId(), selectedRoom.getPassword()));
                                         } else {
                                             ((RoomJoinView) ViewType.ROOM_JOIN.getView()).setRoom(selectedRoom);
@@ -444,6 +450,7 @@ public class TerminalManager {
                                     switch (row) {
                                         case "Megerősítés": {
                                             Main.getClient().sendPacket(view.getPacket());
+                                            Notification.Notifications.ROOM_CREATED.send();
                                             break;
                                         }
                                         case "Szerkesztés": {
@@ -510,13 +517,13 @@ public class TerminalManager {
                         }
                         case OTHER: {
                             if(this.inputMode) {
-                                if(this.inputPrompt.length() + this.inputBuffer.length() > this.terminal.getWidth() - 1) break;
+                                if(this.inputPrompt.length() + this.inputBuffer.length() + lastButton.length() > this.terminal.getWidth() - 1) break;
                                 this.inputBuffer += lastButton;
                             } else {
                                 if (!terminal.isCanWrite()) {
                                     break;
                                 }
-                                if ((Main.getClient().getName() + " > ").length() + chatBuffer.length() > terminal.getWidth() - 1) {
+                                if ((Main.getClient().getName() + " > ").length() + chatBuffer.length() + lastButton.length() + 17 > terminal.getWidth() - 1) {
                                     break;
                                 }
                                 chatBuffer += lastButton;

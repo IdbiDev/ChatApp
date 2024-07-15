@@ -21,17 +21,18 @@ import org.jline.utils.NonBlockingReader;
 
 import java.awt.*;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Scanner;
 import java.util.UUID;
 
-/*
-    Todo: Kérdések mr sósmogyorónak or patrik :3:
 
-     Where do putni da IP connect address port cuki
-     Where reading postgras pass and user
- */
 
 public class Main implements Listener {
 
@@ -45,6 +46,7 @@ public class Main implements Listener {
     @Getter private static int scrollState = 0;
     @Getter private static Server server;
     @Getter private static DatabaseManager databaseManager;
+
 
     public static void debug(String message)
     {
@@ -64,16 +66,18 @@ public class Main implements Listener {
             e.printStackTrace();
         }
     }
+
     // Server //
-    public static void main(String[] args) throws IOException, InterruptedException, AWTException {
+    public static void startApp(String[] args) throws IOException, InterruptedException, AWTException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, URISyntaxException {
 //        Terminal terminal = TerminalBuilder.terminal();
 //        terminal.enterRawMode();
 //        NonBlockingReader nonBlockingReader = terminal.reader();
 //        boolean c = true;
 //        while (c) {
-//            System.out.println(nonBlockingReader.read());
+//            System.out.println(nonBlockingReader.read());y
 //        }
 
+        System.out.println("A ASDASDASD NAYÁDATTTTT");
         Image image = Toolkit.getDefaultToolkit().createImage("info.png");
         Notification.icon = new TrayIcon(image, "CICA");
         //Let the system resize the image if needed
@@ -107,6 +111,7 @@ public class Main implements Listener {
         CommandLine cmd = null;
 
         System.setProperty("jna.encoding", "UTF8");
+
 
         try {
             cmd = parser.parse(options, args);

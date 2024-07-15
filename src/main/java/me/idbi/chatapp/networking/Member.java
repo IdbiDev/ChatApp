@@ -43,25 +43,27 @@ public class Member implements Serializable {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(f);
+            document.getDocumentElement().normalize();
 
-            NodeList nodeList = document.getElementsByTagName("passwords");
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                Node nNode = nodeList.item(i);
+            NodeList roomList = document.getElementsByTagName("room");
 
-                if(nNode.getNodeType() == Node.ELEMENT_NODE) {
-                    Element eElement = (Element) nNode;
-                    Main.debug(eElement.getElementsByTagName("uuid").item(0).getTextContent());
-                    Main.debug(eElement.getElementsByTagName("password").item(0).getTextContent());
-                }
+            Map<UUID, String> passwords = new HashMap<>();
+            for (int temp = 0; temp < roomList.getLength(); temp++) {
+                Element roomElement = (Element) roomList.item(temp);
+
+                String uuid = roomElement.getElementsByTagName("uuid").item(0).getTextContent();
+                String password = roomElement.getElementsByTagName("password").item(0).getTextContent();
+
+                passwords.put(UUID.fromString(uuid), password);
             }
 
-        } catch (IOException | ParserConfigurationException e) {
+            this.passwords.clear();
+            this.passwords.putAll(passwords);
 
-        } catch (SAXException e) {
-            throw new RuntimeException(e);
+            return passwords;
+        } catch (IOException | ParserConfigurationException | SAXException e) {
+            return new HashMap<>();
         }
-
-        return new HashMap<>();
     }
 
     public void savePasswords() {
@@ -81,6 +83,11 @@ public class Member implements Serializable {
             Document doc = builder.newDocument();
             Element psws = doc.createElement("passwords");
             doc.appendChild(psws);
+
+            // Load passwords
+//            for (int i = 0; i < 50; i++) {
+//                this.passwords.put(UUID.randomUUID(), "Cica" +  i);
+//            }
 
             for (Map.Entry<UUID, String> psw : this.passwords.entrySet()) {
                 Element room = doc.createElement("room");
@@ -105,5 +112,12 @@ public class Member implements Serializable {
         } catch (IOException | ParserConfigurationException | TransformerException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public boolean hasPassword(Room room) {
+        if(!this.passwords.containsKey(room.getUniqueId())) return false;
+
+        if(!room.hasPassword()) return true;
+        return this.passwords.get(room.getUniqueId()).equals(room.getPassword());
     }
 }

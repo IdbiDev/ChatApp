@@ -2,18 +2,29 @@ package me.idbi.chatapp.notifications;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.awt.*;
 import java.awt.TrayIcon.MessageType;
-
+@Setter
 @Getter
 @AllArgsConstructor
 public class Notification {
 
     public static TrayIcon icon;
 
+    @Getter
+    @AllArgsConstructor
     public static enum Notifications {
-        ROOM_IS_FULL();
+        ROOM_CREATED(new Notification("Sikeres szoba létrehozás", "A szobád létre lett hozva.", NotificationType.INFO)),
+        ROOM_IS_FULL(new Notification("Sikertelen csatlakozás", "A szoba tele van.", NotificationType.ERROR)),
+        WRONG_RENAME(new Notification("Sikertelen újranevezás", "Nem megfelelő karakterek használtál.", NotificationType.ERROR));
+
+        private final Notification notification;
+
+        public void send() {
+            this.notification.send();
+        }
     }
 
     @Getter @AllArgsConstructor
@@ -23,30 +34,15 @@ public class Notification {
         WARNING("warning.png", TrayIcon.MessageType.WARNING),
         ERROR("error.png", TrayIcon.MessageType.ERROR);
 
-        private String icon;
-        private TrayIcon.MessageType type;
+        private final String icon;
+        private final TrayIcon.MessageType type;
     }
 
     private String title;
     private String description;
     private NotificationType type;
 
-     public void send() throws AWTException {
-         //Obtain only one instance of the SystemTray object
-         SystemTray tray = SystemTray.getSystemTray();
-
-         // If you want to create an icon in the system tray to preview
-         Image image = Toolkit.getDefaultToolkit().createImage("info.png");
-         //Alternative (if the icon is on the classpath):
-
-//         TrayIcon trayIcon = icon;
-//         //Let the system resize the image if needed
-//         trayIcon.setImageAutoSize(true);
-//         //Set tooltip text for the tray icon
-//         trayIcon.setToolTip("22222");
-//         //tray.add(trayIcon);
-
-         // Display info notification:
-         icon.displayMessage(this.title, this.description, MessageType.ERROR);
+     public void send() {
+         icon.displayMessage(this.title, this.description, this.type.type);
      }
 }
