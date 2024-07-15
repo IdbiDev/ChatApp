@@ -57,6 +57,7 @@
 - Jobb UI design
 - Addon support
 - AutoUpdate
+- File küldés
     
     
     
