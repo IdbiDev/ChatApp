@@ -50,6 +50,7 @@
 - System messagek megjavítása
 - Kettő ugyanolyan nevű szoba tiltása
 - Kettő ugyanolyan nevű felhasználó megkülönböztetése
+- Minusz számok beírásának tiltása szoba készítésnél
 
 ### Jövőbeli tervek:
 
