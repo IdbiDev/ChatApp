@@ -3,6 +3,8 @@ package me.idbi.chatapp;
 import lombok.Getter;
 import me.idbi.chatapp.commands.CommandManager;
 import me.idbi.chatapp.commands.chatcommands.LeaveCommand;
+import me.idbi.chatapp.commands.chatcommands.roommanagers.RoomRenameCommand;
+import me.idbi.chatapp.commands.chatcommands.roommanagers.RoomSetpasswordCommand;
 import me.idbi.chatapp.database.DatabaseManager;
 import me.idbi.chatapp.eventmanagers.EventManager;
 import me.idbi.chatapp.eventmanagers.interfaces.Listener;
@@ -65,17 +67,6 @@ public class Main implements Listener {
 //            System.out.println(nonBlockingReader.read());y
 //        }
 
-        Image image = Toolkit.getDefaultToolkit().createImage("info.png");
-        Notification.icon = new TrayIcon(image, "CICA");
-        //Let the system resize the image if needed
-        Notification.icon.setImageAutoSize(true);
-        //Set tooltip text for the tray icon
-        Notification.icon.setToolTip("22222");
-        SystemTray.getSystemTray().add(Notification.icon);
-
-//        new Notification("title", "dec1s", Notification.NotificationType.INFO).send();
-//        new Notification("title", "decs2", Notification.NotificationType.INFO).send();
-//        new Notification("title", "dec3s", Notification.NotificationType.INFO).send();
         Options options = new Options();
         Option serverOption = new Option("s", "server", false, "Run as server");
         serverOption.setRequired(false);
@@ -127,6 +118,7 @@ public class Main implements Listener {
         messageDateFormat = new SimpleDateFormat("MM.dd HH:mm:ss");
         if (args.length >= 1) {
             if (cmd.hasOption("c")) {
+                Notification.load();
                 clientData = new ClientData();
                 clientData.load();
                 messagePerScroll = 3;
@@ -139,6 +131,8 @@ public class Main implements Listener {
                 databaseManager = new DatabaseManager();
                 databaseManager.connect();
                 commandManager.registerCommand("leave", new LeaveCommand());
+                commandManager.registerCommand("rename", new RoomRenameCommand());
+                commandManager.registerCommand("setpassword", new RoomSetpasswordCommand());
                 server = new Server(port);
                 server.serverLoop();
             }

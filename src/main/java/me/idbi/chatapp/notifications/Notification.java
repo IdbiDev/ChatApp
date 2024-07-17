@@ -5,29 +5,31 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.awt.*;
-import java.awt.TrayIcon.MessageType;
+import java.io.Serializable;
+
 @Setter
 @Getter
 @AllArgsConstructor
-public class Notification {
+public class Notification implements Serializable {
 
-    public static TrayIcon icon;
-
+    @Setter
     @Getter
-    @AllArgsConstructor
-    public static enum Notifications {
-        ROOM_CREATED(new Notification("Sikeres szoba létrehozás", "A szobád létre lett hozva.", NotificationType.INFO)),
-        ROOM_IS_FULL(new Notification("Sikertelen csatlakozás", "A szoba tele van.", NotificationType.ERROR)),
-        WRONG_RENAME(new Notification("Sikertelen újranevezás", "Nem megfelelő karakterek használtál.", NotificationType.ERROR));
+    private static TrayIcon icon;
 
-        private final Notification notification;
-
-        public void send() {
-            this.notification.send();
+    public static void load() {
+        try {
+            Image image = Toolkit.getDefaultToolkit().createImage("info.png");
+            icon = new TrayIcon(image);
+            icon.setImageAutoSize(true);
+            SystemTray.getSystemTray().add(icon);
+            Notification.setIcon(icon);
+        } catch (AWTException e) {
+            e.printStackTrace();
         }
     }
 
-    @Getter @AllArgsConstructor
+    @Getter
+    @AllArgsConstructor
     public static enum NotificationType {
         NONE("none.png", TrayIcon.MessageType.NONE),
         INFO("info.png", TrayIcon.MessageType.INFO),
@@ -42,7 +44,7 @@ public class Notification {
     private String description;
     private NotificationType type;
 
-     public void send() {
-         icon.displayMessage(this.title, this.description, this.type.type);
-     }
+    public void send() {
+        icon.displayMessage(this.title, this.description, this.type.type);
+    }
 }

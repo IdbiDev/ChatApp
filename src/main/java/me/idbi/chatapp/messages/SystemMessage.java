@@ -5,6 +5,7 @@ import lombok.Getter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.networking.Member;
 import me.idbi.chatapp.networking.Room;
+import me.idbi.chatapp.utils.TerminalManager;
 import me.idbi.chatapp.utils.Utils;
 
 import java.io.Serializable;
@@ -19,9 +20,12 @@ import java.util.List;
 @AllArgsConstructor
 public class SystemMessage implements IMessage, Serializable {
 
+    @Getter
     @AllArgsConstructor
     public static enum MessageType {
-        ROOM_CREATE("%room% szoba létrehozva."),
+        ROOM_CREATE(TerminalManager.Color.GREEN.getCode() + "%room% szoba létrehozva." + TerminalManager.Color.RESET),
+        ROOM_RENAMED(TerminalManager.Color.GREEN.getCode() + "A szoba új neve: %s" + TerminalManager.Color.RESET),
+        ROOM_PASSWORD_CHANGED(TerminalManager.Color.GREEN.getCode() + "A szobának a jelszava megváltozott!" + TerminalManager.Color.RESET),
         BAN("%member% kitiltva a szobából."),
         KICK("%member% kirúgva a szobából."),
         JOIN("%member% csatlakozott."),
@@ -43,6 +47,11 @@ public class SystemMessage implements IMessage, Serializable {
 
         public String format(String text) {
             return String.format(this.message, text);
+        }
+
+        @Override
+        public String toString() {
+            return this.message;
         }
     }
 

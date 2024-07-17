@@ -1,10 +1,12 @@
 package me.idbi.chatapp.view.viewmenus;
 
 import me.idbi.chatapp.Main;
+import me.idbi.chatapp.networking.Room;
+import me.idbi.chatapp.notifications.Notification;
+import me.idbi.chatapp.notifications.Notifications;
 import me.idbi.chatapp.packets.client.CreateRoomPacket;
 import me.idbi.chatapp.packets.client.RequestRefreshPacket;
 import me.idbi.chatapp.utils.StringPatterns;
-import me.idbi.chatapp.utils.Utils;
 import me.idbi.chatapp.view.IView;
 import me.idbi.chatapp.view.ViewType;
 
@@ -51,15 +53,18 @@ public class RoomCreateView implements IView {
         AtomicReference<String> name = new AtomicReference<>();
         while(isNull(name.get())) {
             if(exitBoolean.get()) return;
-            Main.getClientData().getInputManager().getInput("Szoba neve > ", StringPatterns.NAME, name::set, exit);
+            Main.getClientData().getInputManager().getInput("Szoba neve > ", StringPatterns.NAME, text -> {
+                if(existsRoom(text)) {
+                    Notifications.ROOM_ALREADY_EXISTS.send();
+                    return;
+                }
+                name.set(text);
+            }, exit);
         }
 
         if(exitBoolean.get()) return;
         AtomicReference<String> maxMembersString = new AtomicReference<>();
-        while (isNull(maxMembersString.get())) {
-            if(exitBoolean.get()) return;
-            Main.getClientData().getInputManager().getInput("Maximum felhasználók > ", StringPatterns.NUMBER, maxMembersString::set, exit);
-        }
+        Main.getClientData().getInputManager().getInput("Maximum felhasználók > ", StringPatterns.NUMBER, maxMembersString::set, exit);
 
         if(exitBoolean.get()) return;
         int maxMembers = 0;
@@ -67,12 +72,9 @@ public class RoomCreateView implements IView {
             maxMembers = Math.max(0, Integer.parseInt(maxMembersString.get()));
 
         AtomicReference<String> password = new AtomicReference<>();
-        while (isNull(password.get())) {
-            if(exitBoolean.get()) return;
-            Main.getClientData().getInputManager().getInput("Jelszó > ", StringPatterns.PASSWORD, password::set, exit);
-        }
-
+        Main.getClientData().getInputManager().getInput("Jelszó > ", StringPatterns.PASSWORD, password::set, exit);
         if(exitBoolean.get()) return;
+
 
         // create room
         CreateRoomPacket packet = new CreateRoomPacket(name.get(), password.get(), maxMembers);
@@ -87,6 +89,10 @@ public class RoomCreateView implements IView {
     @Override
     public void update() {
 
+    }
+
+    public boolean existsRoom(String text) {
+        return Main.getClientData().getRooms().values().stream().map(Room::getName).filter(name -> name.equalsIgnoreCase(text)).findAny().orElse(null) != null;
     }
 
     private boolean isNull(String text) {

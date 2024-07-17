@@ -6,6 +6,7 @@ import lombok.Setter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.messages.ClientMessage;
 import me.idbi.chatapp.messages.IMessage;
+import me.idbi.chatapp.packets.server.SendMessageToClientPacket;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -47,4 +48,10 @@ public class Room implements Serializable {
         Main.getClientData().setRefreshChatRoom(true);
     }
 
+    public void sendMessageServer(IMessage message) {
+        this.messages.add(message);
+        for (Member member : this.members) {
+            Main.getServer().sendPacket(member, new SendMessageToClientPacket(message));
+        }
+    }
 }

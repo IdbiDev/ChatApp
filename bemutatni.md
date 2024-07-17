@@ -46,11 +46,11 @@
 - Szoba adminisztrátor
 - Global Admin
 - Több / Jobb hiba kezelés
-- Értesítések megjavítása
-- System messagek megjavítása
-- Kettő ugyanolyan nevű szoba tiltása
+- Értesítések megjavítása (elvileg kész)
+- System messagek megjavítása 
+- Kettő ugyanolyan nevű szoba tiltása (kész)
 - Kettő ugyanolyan nevű felhasználó megkülönböztetése
-- Minusz számok beírásának tiltása szoba készítésnél
+- Minusz számok beírásának tiltása szoba készítésnél (kész)
 
 ### Jövőbeli tervek:
 

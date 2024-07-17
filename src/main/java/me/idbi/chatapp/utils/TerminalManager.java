@@ -10,6 +10,7 @@ import me.idbi.chatapp.messages.IMessage;
 import me.idbi.chatapp.messages.SystemMessage;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.notifications.Notification;
+import me.idbi.chatapp.notifications.Notifications;
 import me.idbi.chatapp.packets.client.DebugMessagePacket;
 import me.idbi.chatapp.packets.client.RequestRefreshPacket;
 import me.idbi.chatapp.packets.client.RoomJoinPacket;
@@ -468,7 +469,7 @@ public class TerminalManager {
                                     switch (row) {
                                         case "Megerősítés": {
                                             Main.getClient().sendPacket(view.getPacket());
-                                            Notification.Notifications.ROOM_CREATED.send();
+                                            Notifications.ROOM_CREATED.send();
                                             break;
                                         }
                                         case "Szerkesztés": {

@@ -13,6 +13,7 @@ import me.idbi.chatapp.utils.RoomJoinResult;
 import me.idbi.chatapp.utils.TerminalManager;
 
 import java.io.*;
+import java.lang.reflect.AnnotatedType;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -292,7 +293,7 @@ public class Server {
 
                                 SystemMessage msg = new SystemMessage(
                                         newRoom,
-                                        TerminalManager.Color.GREEN.getCode() + SystemMessage.MessageType.ROOM_CREATE.setRoom(newRoom.getName()) + TerminalManager.Color.RESET,
+                                        SystemMessage.MessageType.ROOM_CREATE.setRoom(newRoom.getName()),
                                         new Date(),
                                         1);
                                 newRoom.getMessages().add(msg);
@@ -310,18 +311,6 @@ public class Server {
                                         new String[]{}
                                 );
 
-                            }
-                        }else if(packetObject instanceof RoomEditPacket packet){
-                            Room tempRoom = this.rooms.get(packet.getUniqueId());
-                            if(tempRoom.getOwner() != entry.getValue().getUniqueId()){
-                                continue;
-                            }
-                            switch (packet.getType()) {
-                                case RENAME -> tempRoom.setName((String) packet.getValue());
-                                case SET_PASSWORD -> tempRoom.setPassword(packet.getValue() == "" ? null : (String) packet.getValue());
-                                case TRANSFER_OWNERSHIP -> {
-                                    //tempRoom.setOwner();
-                                }
                             }
                         }
                     }

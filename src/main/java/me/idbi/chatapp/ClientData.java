@@ -8,10 +8,8 @@ import me.idbi.chatapp.networking.Member;
 import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.table.TableManager;
 import me.idbi.chatapp.utils.InputManager;
-import me.idbi.chatapp.utils.NotificationManager;
 import me.idbi.chatapp.utils.TerminalManager;
 import me.idbi.chatapp.view.ViewManager;
-import me.idbi.chatapp.view.ViewType;
 import me.idbi.chatapp.view.viewmenus.RoomChatView;
 
 import java.io.IOException;
@@ -31,7 +29,6 @@ public class ClientData {
     private final TableManager tableManager;
     private final TerminalManager terminalManager;
     private final ViewManager viewManager;
-    private final NotificationManager notificationManager;
     @Setter private boolean refreshChatRoom;
     @Setter private boolean refreshBuffer;
     private Date joinedDate;
@@ -53,7 +50,6 @@ public class ClientData {
         this.inputManager = new InputManager();
         this.tableManager = new TableManager();
         this.terminalManager = new TerminalManager();
-        this.notificationManager = new NotificationManager();
         this.previousWidth = this.terminalManager.getWidth();
     }
 
