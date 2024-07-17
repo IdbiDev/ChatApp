@@ -52,52 +52,50 @@ public class RoomListView implements IView, IView.Tableable {
     @Override
     public void update() {
         List<Room> rooms = getPageRooms(); // Main.getClientData().getRooms().values().stream().sorted(Comparator.comparing(Room::getName)).toList();
-       // if (!rooms.isEmpty()) {
-            Column name = new Column();
-            name.addRow(new Row("Név", false, false, Row.Aligment.CENTER));
+        Column name = new Column();
+        name.addRow(new Row("Név", false, false, Row.Aligment.CENTER));
 
-            Column infos = new Column(20);
-            infos.addRow(new Row("Információk", false, false, Row.Aligment.CENTER));
+        Column infos = new Column(20);
+        infos.addRow(new Row("Információk", false, false, Row.Aligment.CENTER));
 
-            Column psw = new Column(20);
-            psw.addRow(new Row("Jelszóvédett", false, false, Row.Aligment.CENTER));
+        Column psw = new Column(20);
+        psw.addRow(new Row("Jelszóvédett", false, false, Row.Aligment.CENTER));
 
-            boolean firstSelected = true;
-            for (Room room : rooms) {
-                name.addRow(new Row(room.getName().strip(), true, firstSelected));
-                firstSelected = false;
+        boolean firstSelected = true;
+        for (Room room : rooms) {
+            name.addRow(new Row(room.getName().strip(), true, firstSelected));
+            firstSelected = false;
+        }
+
+        for (Room room : rooms) {
+            String memberInfos = room.getMembers().size() + (room.getMaxMembers() == 0 ? "" : "/" + room.getMaxMembers());
+            infos.addRow(new Row(memberInfos, false, false, Row.Aligment.CENTER));
+        }
+
+        for (Room room : rooms) {
+            psw.addRow(new Row(room.hasPassword() ? "Igen" : "Nem", false, false, Row.Aligment.CENTER));
+        }
+
+        Table table = new Table();
+        table.addColumn(name, infos, psw);
+
+        int length = -1;
+        for (String value : table.getTable().values()) {
+            if (length < value.length()) {
+                length = value.length();
             }
+        }
 
-            for (Room room : rooms) {
-                String memberInfos = room.getMembers().size() + (room.getMaxMembers() == 0 ? "" : "/" + room.getMaxMembers());
-                infos.addRow(new Row(memberInfos, false, false, Row.Aligment.CENTER));
-            }
+        name.addRow(new Row("Szoba készítés", true, rooms.isEmpty(), Row.Aligment.LEFT));
+        infos.addRow(new Row(" ", false, false, Row.Aligment.CENTER));
+        psw.addRow(new Row(" ", false, false, Row.Aligment.CENTER));
 
-            for (Room room : rooms) {
-                psw.addRow(new Row(room.hasPassword() ? "Igen" : "Nem", false, false, Row.Aligment.CENTER));
-            }
-
-            Table table = new Table();
-            table.addColumn(name, infos, psw);
-
-            int length = -1;
-            for (String value : table.getTable().values()) {
-                if (length < value.length()) {
-                    length = value.length();
-                }
-            }
-
-            name.addRow(new Row("Szoba készítés", true, rooms.isEmpty(), Row.Aligment.LEFT));
-            infos.addRow(new Row(" ", false, false, Row.Aligment.CENTER));
-            psw.addRow(new Row(" ", false, false, Row.Aligment.CENTER));
-
-            Table header = new Table();
-            Column column = new Column(el -> el.setWidth(Main.getClientData().getTerminalManager().getWidth() - 4));
-            column.addRow(new Row("Szobák | " + (Main.getClientData().getRoomListState() + 1), false, false, Row.Aligment.CENTER));
-            header.addColumn(column);
-            Main.getClientData().getTableManager().setHeader(header);
-            Main.getClientData().getTableManager().setTable(table);
-       // }
+        Table header = new Table();
+        Column column = new Column(el -> el.setWidth(Main.getClientData().getTerminalManager().getWidth() - 4));
+        column.addRow(new Row("Szobák | " + (Main.getClientData().getRoomListState() + 1), false, false, Row.Aligment.CENTER));
+        header.addColumn(column);
+        Main.getClientData().getTableManager().setHeader(header);
+        Main.getClientData().getTableManager().setTable(table);
     }
 
     private List<Room> getPageRooms() {
@@ -106,18 +104,11 @@ public class RoomListView implements IView, IView.Tableable {
         int state = Main.getClientData().getRoomListState();
         int amountOnPage = Main.getClientData().getTerminalManager().getTerminal().getHeight() - 9;
 
-        Main.debug("1");
         if(rooms.size() > amountOnPage) {
-
-            Main.debug("2");
             int idx1 = state * amountOnPage;
             int idx2 = state * amountOnPage + amountOnPage;
 
-            Main.debug("A: " + idx1 + " " + idx2);
             idx2 = Math.min(idx2, rooms.size());
-
-            Main.debug("B: " + idx1 + " " + idx2);
-            Main.debug("Size: " + rooms.size());
             return rooms.subList(idx1, idx2);
         }
         return rooms;

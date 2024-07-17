@@ -14,17 +14,17 @@ import java.util.Date;
 public class RoomSetpasswordCommand implements CommandExecutor {
     @Override
     public boolean onCommand(Member sender, Room room, String command, String[] args) {
-        if(!room.getOwner().equals(sender.getUniqueId())) {
+        if(!room.isOwner(sender)) {
             Main.getServer().sendNotification(sender, Notifications.NO_PERMISSION);
             return false;
         }
         if(args.length != 1) {
-            Main.getServer().sendNotification(sender, Notifications.COMMAND_USAGE, "/setpassword <új jelszó>");
+            Main.getServer().sendNotification(sender, Notifications.COMMAND_USAGE, "/permanent");
             return false;
         }
 
         if(!StringPatterns.PASSWORD.match(args[0])) {
-            Main.getServer().sendNotification(sender, Notifications.WRONG_CHARACTER);
+            Main.getServer().sendNotification(sender, Notifications.WRONG_TEXT_INPUT);
             return false;
         }
 
@@ -38,11 +38,8 @@ public class RoomSetpasswordCommand implements CommandExecutor {
         );
 
         room.sendMessageServer(msg);
-        Notification not = Notifications.ROOM_PASSWORD_CHANGED.getNotification();
-        not.setDescription(not.getDescription().formatted(args[0]));
 
-        Main.getServer().sendNotification(sender, not);
-        Main.getServer().refreshForKukacEveryoneUwU();
+        Main.getServer().sendNotification(sender, Notifications.ROOM_PASSWORD_CHANGED, args[0]);
         return true;
     }
 }

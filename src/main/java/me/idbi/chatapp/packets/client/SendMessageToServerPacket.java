@@ -10,5 +10,5 @@ import java.io.Serializable;
 @Getter
 @AllArgsConstructor
 public class SendMessageToServerPacket extends ClientPacket {
-    private IMessage message;
+    private final IMessage message;
 }

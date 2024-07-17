@@ -3,8 +3,7 @@ package me.idbi.chatapp;
 import lombok.Getter;
 import me.idbi.chatapp.commands.CommandManager;
 import me.idbi.chatapp.commands.chatcommands.LeaveCommand;
-import me.idbi.chatapp.commands.chatcommands.roommanagers.RoomRenameCommand;
-import me.idbi.chatapp.commands.chatcommands.roommanagers.RoomSetpasswordCommand;
+import me.idbi.chatapp.commands.chatcommands.roommanagers.*;
 import me.idbi.chatapp.database.DatabaseManager;
 import me.idbi.chatapp.eventmanagers.EventManager;
 import me.idbi.chatapp.eventmanagers.interfaces.Listener;
@@ -133,9 +132,12 @@ public class Main implements Listener {
             } else if (cmd.hasOption("s")) {
                 databaseManager = new DatabaseManager();
                 databaseManager.connect();
-                commandManager.registerCommand("leave", new LeaveCommand());
-                commandManager.registerCommand("rename", new RoomRenameCommand());
-                commandManager.registerCommand("setpassword", new RoomSetpasswordCommand());
+                commandManager.registerCommand("leave", "/leave", "Kilépés a jelenlegi szobából", new LeaveCommand());
+                commandManager.registerCommand("rename", "/rename <új név>", "Szoba átnevezése", new RoomRenameCommand());
+                commandManager.registerCommand("setpassword", "/setpassword <új jelszó>", "Új jelszó beállítása", new RoomSetpasswordCommand(), "setpsw", "setpass");
+                commandManager.registerCommand("permanent", "/permanent", "A szoba örökké vagy ideiglenessé tétele", new RoomPermanentCommand());
+                commandManager.registerCommand("setowner", "/setowner <új tulajdonos neve>", "Szoba tulajdonjog átruházása", new RoomSetownerCommand());
+                commandManager.registerCommand("disband", "/disband", "Szoba azonnali törlése", new RoomDisbandCommand());
                 server = new Server(port);
                 server.serverLoop();
             }

@@ -8,5 +8,5 @@ import java.io.Serializable;
 @Getter
 @AllArgsConstructor
 public class DebugMessagePacket extends ClientPacket {
-    private String message;
+    private final String message;
 }

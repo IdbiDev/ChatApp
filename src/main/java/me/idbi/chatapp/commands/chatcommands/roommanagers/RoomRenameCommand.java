@@ -15,7 +15,7 @@ import java.util.Date;
 public class RoomRenameCommand implements CommandExecutor {
     @Override
     public boolean onCommand(Member sender, Room room, String command, String[] args) {
-        if(!room.getOwner().equals(sender.getUniqueId())) {
+        if(!room.isOwner(sender)) {
             Main.getServer().sendNotification(sender, Notifications.NO_PERMISSION);
             return false;
         }
@@ -25,11 +25,11 @@ public class RoomRenameCommand implements CommandExecutor {
         }
 
         if(!StringPatterns.NAME.match(args[0])) {
-            Main.getServer().sendNotification(sender, Notifications.WRONG_CHARACTER);
+            Main.getServer().sendNotification(sender, Notifications.WRONG_TEXT_INPUT);
             return false;
         }
 
-        room.setName(args[0]);
+        room.rename(args[0]);
 
         SystemMessage msg = new SystemMessage(
                 room,
@@ -39,9 +39,7 @@ public class RoomRenameCommand implements CommandExecutor {
         );
 
         room.sendMessageServer(msg);
-
         Main.getServer().sendNotification(sender, Notifications.ROOM_RENAMED);
-        Main.getServer().refreshForKukacEveryoneUwU();
         return true;
     }
 }

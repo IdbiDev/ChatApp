@@ -47,7 +47,7 @@
 - Global Admin
 - Több / Jobb hiba kezelés
 - Értesítések megjavítása (elvileg kész)
-- System messagek megjavítása 
+- System messagek megjavítása, könnyeb küldés function
 - Kettő ugyanolyan nevű szoba tiltása (kész)
 - Kettő ugyanolyan nevű felhasználó megkülönböztetése
 - Minusz számok beírásának tiltása szoba készítésnél (kész)
@@ -59,6 +59,15 @@
 - Addon support
 - AutoUpdate
 - File küldés
+
+### Notes
+
+- SQL Injection tiltása (készXD)
+- Mention (kész)
+- SQL queryk functionbe rakása a commandból (kész)
+- Owner saját szobáit előre rakni és kiemelni
+- Mentett jelszavas szobák előre rakása
+- Esetleg fel, le nyillal message history és akk a pg up, down lesz csak a chat history pörgetésére
     
     
     

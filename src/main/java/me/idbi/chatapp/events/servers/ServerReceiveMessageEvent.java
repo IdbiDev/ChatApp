@@ -1,6 +1,7 @@
 package me.idbi.chatapp.events.servers;
 
 import lombok.Getter;
+import lombok.Setter;
 import me.idbi.chatapp.eventmanagers.interfaces.Cancellable;
 import me.idbi.chatapp.eventmanagers.interfaces.Event;
 import me.idbi.chatapp.messages.IMessage;

@@ -8,9 +8,9 @@ import me.idbi.chatapp.packets.ClientPacket;
 @Getter
 @AllArgsConstructor
 public class CreateRoomPacket extends ClientPacket {
-    private String name;
-    private String password;
-    private int maxMembers;
+    private final String name;
+    private final String password;
+    private final int maxMembers;
 
     public String getFormattedMaxMembers() {
         return this.maxMembers == 0 ? "Végtelen" : this.maxMembers + "";

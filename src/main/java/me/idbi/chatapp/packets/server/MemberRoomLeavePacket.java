@@ -8,5 +8,5 @@ import me.idbi.chatapp.packets.ServerPacket;
 @Getter
 @AllArgsConstructor
 public class MemberRoomLeavePacket extends ServerPacket {
-    private Member member;
+    private final Member member;
 }

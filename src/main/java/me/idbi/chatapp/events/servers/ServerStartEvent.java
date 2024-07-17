@@ -46,7 +46,8 @@ public class ServerStartEvent extends Event {
                             new CopyOnWriteArrayList<>(),
                             0,
                             new CopyOnWriteArrayList<>(),
-                            new CopyOnWriteArrayList<>()
+                            new CopyOnWriteArrayList<>(),
+                            true
                     );
                     Main.getServer().getRooms().put(room.getUniqueId(), room);
                     Main.getDatabaseManager().getDriver().exec(
@@ -54,7 +55,7 @@ public class ServerStartEvent extends Event {
                             room.getUniqueId(),
                             room.getName(),
                             room.getOwner() != null ? room.getOwner().toString() : "",
-                            room.getPassword() != null ? room.getPassword().toString() : "",
+                            room.getPassword() != null ? room.getPassword() : "",
                             room.getMaxMembers(),
                             new String[]{}
                     );

@@ -66,7 +66,12 @@ public class Member implements Serializable {
         }
     }
 
+    @Client
     public void savePasswords() {
+        if(Main.isServer()) {
+            throw new IllegalNetworkSideException("This function is only callable from client-side");
+        }
+
         try {
             File directory = new File(System.getenv("APPDATA") + "/ChatApp");
             if(!directory.exists()) {

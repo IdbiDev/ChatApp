@@ -51,6 +51,7 @@ public class Client {
         this.socket = null;
         return connect();
     }
+
     public boolean connect() {
         try {
             this.socket = new Socket(host, port); //server

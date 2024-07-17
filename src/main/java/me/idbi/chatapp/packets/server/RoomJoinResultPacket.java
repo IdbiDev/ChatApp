@@ -13,7 +13,7 @@ import java.util.Date;
 @Getter
 @AllArgsConstructor
 public class RoomJoinResultPacket extends ServerPacket {
-    private RoomJoinResult result;
-    private Room room;
-    private Date joinAt;
+    private final RoomJoinResult result;
+    private final Room room;
+    private final Date joinAt;
 }

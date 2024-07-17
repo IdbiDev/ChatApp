@@ -10,5 +10,5 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class HandshakePacket extends ClientPacket {
 
-    private String id;
+    private final String id;
 }

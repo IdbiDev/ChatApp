@@ -8,7 +8,7 @@ import me.idbi.chatapp.packets.ServerPacket;
 
 @Getter
 public class SendNotificationPacket extends ServerPacket {
-    private Notification notification;
+    private final Notification notification;
 
     public SendNotificationPacket(Notifications notifications) {
         this.notification = notifications.getNotification();

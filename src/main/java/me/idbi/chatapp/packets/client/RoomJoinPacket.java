@@ -9,6 +9,6 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 public class RoomJoinPacket extends ClientPacket {
-    private UUID uniqueId;
-    private String password;
+    private final UUID uniqueId;
+    private final String password;
 }
