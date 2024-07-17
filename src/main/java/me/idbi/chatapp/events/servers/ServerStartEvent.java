@@ -32,7 +32,8 @@ public class ServerStartEvent extends Event {
                             new CopyOnWriteArrayList<>(),
                             result.getInt("maxmembers"),
                             new CopyOnWriteArrayList<>(),
-                            new CopyOnWriteArrayList(Arrays.stream(((String[]) result.getArray("administrators").getArray())).map(UUID::fromString).toList())
+                            new CopyOnWriteArrayList(Arrays.stream(((String[]) result.getArray("administrators").getArray())).map(UUID::fromString).toList()),
+                            result.getBoolean("permanent")
                     );
                     Main.getServer().getRooms().put(room.getUniqueId(), room);
                     rowCount++;
@@ -51,13 +52,14 @@ public class ServerStartEvent extends Event {
                     );
                     Main.getServer().getRooms().put(room.getUniqueId(), room);
                     Main.getDatabaseManager().getDriver().exec(
-                            "INSERT INTO rooms (uuid,name,owner,password,maxmembers,administrators) VALUES (?,?,?,?,?,?)",
+                            "INSERT INTO rooms (uuid,name,owner,password,maxmembers,administrators,permanent) VALUES (?,?,?,?,?,?,?)",
                             room.getUniqueId(),
                             room.getName(),
                             room.getOwner() != null ? room.getOwner().toString() : "",
                             room.getPassword() != null ? room.getPassword() : "",
                             room.getMaxMembers(),
-                            new String[]{}
+                            new String[]{},
+                            true
                     );
                 }
             } catch (Exception e) {

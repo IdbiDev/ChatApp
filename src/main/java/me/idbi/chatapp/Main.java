@@ -39,7 +39,9 @@ public class Main implements Listener {
     @Getter private static Server server;
     @Getter private static DatabaseManager databaseManager;
 
-
+    public static boolean isServer(){
+        return server != null;
+    }
     public static void debug(String message) {
         try {
             Main.getClient().sendPacket(new DebugMessagePacket(message));

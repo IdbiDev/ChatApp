@@ -113,11 +113,15 @@ public class Server {
             System.out.println(sockets.get(sender).getName() + " disconnected (Socket disconnected)");
 
             heartbeatTable.remove(sender);
+            boolean shouldRefresh = false;
             for (Room room : rooms.values()) {
                 if(room.getMembers().contains(sockets.get(sender))) {
                     shouldRefresh = true;
                 }
                 room.removeMember(sockets.get(sender));
+            }
+            if (shouldRefresh) {
+                refreshForKukacEveryoneUwU();
             }
             sockets.remove(sender);
         } catch (IOException e) {
@@ -199,8 +203,15 @@ public class Server {
                         }
                     }
                     new ServerClientDisconnectEvent(sockets.get(entry.getKey()), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
+                    boolean shouldRefresh = false;
                     for (Room room : rooms.values()) {
+                        if(room.getMembers().contains(entry.getValue())) {
+                            shouldRefresh = true;
+                        }
                         room.removeMember(entry.getValue());
+                    }
+                    if (shouldRefresh) {
+                        refreshForKukacEveryoneUwU();
                     }
                     this.sockets.remove(socket);
                     heartbeatTable.remove(socket);
@@ -337,7 +348,7 @@ public class Server {
                                 }
                             }
                         } else if (packetObject instanceof CreateRoomPacket packet) {
-                            Room newRoom = new Room(UUID.randomUUID(), packet.getName(), entry.getValue().getUniqueId(), packet.getPassword(), new ArrayList<>(), packet.getMaxMembers(), new ArrayList<>(), new ArrayList<>());
+                            Room newRoom = new Room(UUID.randomUUID(), packet.getName(), entry.getValue().getUniqueId(), packet.getPassword(), new ArrayList<>(), packet.getMaxMembers(), new ArrayList<>(), new ArrayList<>(),false);
                             ServerRoomCreateEvent event = new ServerRoomCreateEvent(newRoom);
                             if (event.callEvent()) {
                                 newRoom = event.getRoom();
@@ -359,13 +370,14 @@ public class Server {
 
                                 refreshForKukacEveryoneUwU();
                                 Main.getDatabaseManager().getDriver().exec(
-                                        "INSERT INTO rooms (uuid,name,owner,password,maxmembers,administrators) VALUES (?,?,?,?,?,?)",
+                                        "INSERT INTO rooms (uuid,name,owner,password,maxmembers,administrators,permanent) VALUES (?,?,?,?,?,?,?)",
                                         newRoom.getUniqueId().toString(),
                                         newRoom.getName(),
                                         newRoom.getOwner() != null ? newRoom.getOwner().toString() : "",
                                         newRoom.getPassword() != null ? newRoom.getPassword() : "",
                                         newRoom.getMaxMembers(),
-                                        new String[]{}
+                                        new String[]{},
+                                        false
                                 );
 
                             }
@@ -379,8 +391,16 @@ public class Server {
 
                         sockets.remove(socket);
                         heartbeatTable.remove(socket);
+
+                        boolean shouldRefresh = false;
                         for (Room room : rooms.values()) {
-                            room.removeMember(sockets.get(socket));
+                            if(room.getMembers().contains(entry.getValue())) {
+                                shouldRefresh = true;
+                            }
+                            room.removeMember(entry.getValue());
+                        }
+                        if (shouldRefresh) {
+                            refreshForKukacEveryoneUwU();
                         }
                         socket.close();
                     } catch (IOException ex) {
@@ -444,7 +464,6 @@ public class Server {
         @Override
         public void run() {
             while (true) {
-
                 try {
                     Thread.sleep(1000);
                     for (Map.Entry<Socket, PingPongMember> entry : this.server.heartbeatTable.entrySet()) {

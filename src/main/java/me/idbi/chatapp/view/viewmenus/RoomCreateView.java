@@ -45,8 +45,8 @@ public class RoomCreateView implements IView {
         Runnable exit = () -> {
             exitBoolean.set(true);
             Main.getClientData().getTerminalManager().clear();
-            Main.getClient().sendPacket(new RequestRefreshPacket());
             Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
+            Main.getClient().sendPacket(new RequestRefreshPacket());
         };
 
         Main.getClientData().getTerminalManager().clear();

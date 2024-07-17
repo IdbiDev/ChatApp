@@ -113,6 +113,9 @@ public class Room implements Serializable {
 
     @Client
     public void sendMessage(IMessage message) {
+        if(Main.isServer()) {
+            throw new IllegalNetworkSideException("This function is only callable from client-side");
+        }
         messages.add(message);
         Main.getClientData().setRefreshChatRoom(true);
     }

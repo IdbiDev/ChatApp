@@ -3,6 +3,9 @@ package me.idbi.chatapp.networking;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import me.idbi.chatapp.Main;
+import me.idbi.chatapp.networkside.Client;
+import me.idbi.chatapp.networkside.IllegalNetworkSideException;
+import me.idbi.chatapp.networkside.Server;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -35,7 +38,12 @@ public class Member implements Serializable {
     private List<Room> rooms;
     private Map<UUID, String> passwords;
 
+    @Client
     public Map<UUID, String> loadPasswords() {
+        if(Main.isServer()) {
+            throw new IllegalNetworkSideException("This function is only callable from client-side");
+        }
+
         File f = new File(System.getenv("APPDATA") + "/ChatApp/passwords.xml");
         if(!f.exists()) return new HashMap<>();
 
@@ -118,11 +126,18 @@ public class Member implements Serializable {
             throw new RuntimeException(e);
         }
     }
-
+    @Client
+    @Server
     public boolean hasPassword(Room room) {
         if(!this.passwords.containsKey(room.getUniqueId())) return false;
 
         if(!room.hasPassword()) return true;
         return this.passwords.get(room.getUniqueId()).equals(room.getPassword());
+    }
+
+    @Client
+    @Server
+    public List<Room> getPermanentRooms() {
+        return this.rooms.stream().filter(Room::isPermanent).toList();
     }
 }

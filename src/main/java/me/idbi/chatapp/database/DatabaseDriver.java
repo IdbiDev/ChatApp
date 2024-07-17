@@ -81,6 +81,7 @@ public class DatabaseDriver {
                 }
                 paramcount++;
             }
+            System.out.println(statement);
             cmp.complete(statement.executeQuery());
         } catch (SQLException e) {
             e.printStackTrace();
@@ -89,3 +90,4 @@ public class DatabaseDriver {
         return cmp;
     }
 }
+//INSERT INTO rooms (uuid,name,owner,password,maxmembers,administrators) VALUES (('d982a703-b23b-497d-a8c8-3ebde1b7290b'),('Normalis'),('0a1c3d6d-5424-42ae-9713-16fe2a105c3a'),(''),('0'::int4),?)
