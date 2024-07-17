@@ -1,10 +1,15 @@
 package me.idbi.chatapp.commands.chatcommands.roommanagers;
 
+import me.idbi.chatapp.Main;
 import me.idbi.chatapp.commands.CommandExecutor;
+import me.idbi.chatapp.messages.SystemMessage;
 import me.idbi.chatapp.networking.Member;
 import me.idbi.chatapp.networking.Room;
+import me.idbi.chatapp.notifications.Notification;
+import me.idbi.chatapp.notifications.Notifications;
 import me.idbi.chatapp.utils.StringPatterns;
-import me.idbi.chatapp.utils.Utils;
+
+import java.util.Date;
 
 public class RoomSetpasswordCommand implements CommandExecutor {
     @Override
@@ -23,6 +28,21 @@ public class RoomSetpasswordCommand implements CommandExecutor {
             return false;
         }
 
-        return false;
+        room.setPassword(args[0]);
+
+        SystemMessage msg = new SystemMessage(
+                room,
+                SystemMessage.MessageType.ROOM_PASSWORD_CHANGED.getMessage(),
+                new Date(),
+                0
+        );
+
+        room.sendMessageServer(msg);
+        Notification not = Notifications.ROOM_PASSWORD_CHANGED.getNotification();
+        not.setDescription(not.getDescription().formatted(args[0]));
+
+        Main.getServer().sendNotification(sender, not);
+        Main.getServer().refreshForKukacEveryoneUwU();
+        return true;
     }
 }

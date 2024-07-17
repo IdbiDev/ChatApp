@@ -147,6 +147,8 @@ public class Client {
                         } else if (packetObject instanceof MemberRoomLeavePacket) {
                             Main.getClientData().getViewManager().setView(ViewType.ROOM_LIST);
                             Main.getClientData().getViewManager().refresh();
+                        } else if(packetObject instanceof SendNotificationPacket p) {
+                            p.getNotification().send();
                         }
                     }
                 } catch (IOException | ClassNotFoundException e) {

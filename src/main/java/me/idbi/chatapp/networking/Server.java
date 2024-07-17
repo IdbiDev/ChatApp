@@ -6,6 +6,8 @@ import me.idbi.chatapp.events.servers.*;
 import me.idbi.chatapp.messages.ClientMessage;
 import me.idbi.chatapp.messages.IMessage;
 import me.idbi.chatapp.messages.SystemMessage;
+import me.idbi.chatapp.notifications.Notification;
+import me.idbi.chatapp.notifications.Notifications;
 import me.idbi.chatapp.packets.ServerPacket;
 import me.idbi.chatapp.packets.client.*;
 import me.idbi.chatapp.packets.server.*;
@@ -69,6 +71,26 @@ public class Server {
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
+    }
+    public void sendNotification(Member sender, Notification notification) {
+        sendPacket(sender, new SendNotificationPacket(notification));
+    }
+
+    public void sendNotification(Member sender, Notifications notifications) {
+        sendPacket(sender, new SendNotificationPacket(notifications.getNotification()));
+    }
+
+    public void sendNotification(Member sender, Notifications notifications, String... args) {
+        Notification not = notifications.getNotification();
+        not.setDescription(not.getDescription().formatted(args));
+        not.setTitle(not.getTitle().formatted(args));
+        sendPacket(sender, new SendNotificationPacket(not));
+    }
+
+    public void sendNotification(Member sender, Notification notification, String... args) {
+        notification.setDescription(notification.getDescription().formatted(args));
+        notification.setTitle(notification.getTitle().formatted(args));
+        sendPacket(sender, new SendNotificationPacket(notification));
     }
 
     public void sendPacket(Member sender, ServerPacket packet) {

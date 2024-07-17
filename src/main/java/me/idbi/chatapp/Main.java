@@ -9,9 +9,11 @@ import me.idbi.chatapp.database.DatabaseManager;
 import me.idbi.chatapp.eventmanagers.EventManager;
 import me.idbi.chatapp.eventmanagers.interfaces.Listener;
 import me.idbi.chatapp.networking.Client;
+import me.idbi.chatapp.networking.Member;
 import me.idbi.chatapp.networking.Server;
 import me.idbi.chatapp.notifications.Notification;
 import me.idbi.chatapp.packets.client.DebugMessagePacket;
+import me.idbi.chatapp.packets.server.SendNotificationPacket;
 import me.idbi.chatapp.view.ViewType;
 import org.apache.commons.cli.*;
 
@@ -47,6 +49,7 @@ public class Main implements Listener {
         }
 
     }
+
     public static void debugFile(String message) {
         try {
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("debug.txt", true));

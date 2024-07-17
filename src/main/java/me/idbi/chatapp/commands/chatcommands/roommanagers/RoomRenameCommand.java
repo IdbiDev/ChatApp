@@ -1,5 +1,7 @@
 package me.idbi.chatapp.commands.chatcommands.roommanagers;
 
+import dorkbox.util.Sys;
+import me.idbi.chatapp.Main;
 import me.idbi.chatapp.commands.CommandExecutor;
 import me.idbi.chatapp.messages.SystemMessage;
 import me.idbi.chatapp.networking.Member;
@@ -27,7 +29,19 @@ public class RoomRenameCommand implements CommandExecutor {
             return false;
         }
 
+        room.setName(args[0]);
 
-        return false;
+        SystemMessage msg = new SystemMessage(
+                room,
+                SystemMessage.MessageType.ROOM_RENAMED.format(args[0]),
+                new Date(),
+                0
+        );
+
+        room.sendMessageServer(msg);
+
+        Main.getServer().sendNotification(sender, Notifications.ROOM_RENAMED);
+        Main.getServer().refreshForKukacEveryoneUwU();
+        return true;
     }
 }
