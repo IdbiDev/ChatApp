@@ -1,5 +1,6 @@
 package me.idbi.chatapp.networking;
 
+import dorkbox.util.Sys;
 import lombok.Getter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.events.servers.*;
@@ -174,17 +175,18 @@ public class Server {
     }
 
     public void serverLoop() {
-        while (true) {
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            while (true) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    break;
+                }
 
-            for (Map.Entry<Socket, Member> entry : this.sockets.entrySet()) {
-                Socket socket = entry.getKey();
+                for (Map.Entry<Socket, Member> entry : this.sockets.entrySet()) {
+                    Socket socket = entry.getKey();
 
-                if (!socket.isConnected() || socket.isClosed()) {
+                    if (!socket.isConnected() || socket.isClosed()) {
 
                         System.out.println("Socket is closed");
                         Socket socketMember;
@@ -246,173 +248,178 @@ public class Server {
                             } else if (packetObject instanceof RoomJoinPacket packet) {
                                 Room selectedRoom = this.rooms.get(packet.getUniqueId());
 
-                            RoomJoinResult result = RoomJoinResult.SUCCESS;
+                                RoomJoinResult result = RoomJoinResult.SUCCESS;
 
-                            if (selectedRoom == null) {
-                                result = RoomJoinResult.INVALID_ROOM;
-                            }
+                                if (selectedRoom == null) {
+                                    result = RoomJoinResult.INVALID_ROOM;
+                                }
 
-                            if (selectedRoom != null && selectedRoom.hasPassword() && !Objects.equals(selectedRoom.getPassword(), packet.getPassword())) {
-                                result = RoomJoinResult.WRONG_PASSWORD;
-                                //sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.WRONG_PASSWORD, selectedRoom));
-                            }
+                                if (selectedRoom != null && selectedRoom.hasPassword() && !Objects.equals(selectedRoom.getPassword(), packet.getPassword())) {
+                                    result = RoomJoinResult.WRONG_PASSWORD;
+                                    //sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.WRONG_PASSWORD, selectedRoom));
+                                }
 
-                            if (selectedRoom != null && selectedRoom.isFull()) {
-                                result = RoomJoinResult.ROOM_FULL;
-                                //sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.ROOM_FULL, selectedRoom));
-                            }
+                                if (selectedRoom != null && selectedRoom.isFull()) {
+                                    result = RoomJoinResult.ROOM_FULL;
+                                    //sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.ROOM_FULL, selectedRoom));
+                                }
 
-                            ServerRoomJoinEvent event = new ServerRoomJoinEvent(sockets.get(socket), selectedRoom, result);
-                            if (event.callEvent()) {
+                                ServerRoomJoinEvent event = new ServerRoomJoinEvent(sockets.get(socket), selectedRoom, result);
+                                if (event.callEvent()) {
 
-                                if (result == RoomJoinResult.SUCCESS) {
-                                    selectedRoom.addMember(entry.getValue());
-                                    Socket socketMember;
-                                    SystemMessage msg = new SystemMessage(
-                                            selectedRoom,
-                                            SystemMessage.MessageType.JOIN.setMember(entry.getValue()),
-                                            new Date(),
-                                            1
+                                    if (result == RoomJoinResult.SUCCESS) {
+                                        selectedRoom.addMember(entry.getValue());
+                                        Socket socketMember;
+                                        SystemMessage msg = new SystemMessage(
+                                                selectedRoom,
+                                                SystemMessage.MessageType.JOIN.setMember(entry.getValue()),
+                                                new Date(),
+                                                1
+                                        );
+                                        selectedRoom.getMessages().add(msg);
+                                        for (Member member : selectedRoom.getMembers()) {
+                                            if ((socketMember = getSocketByMember(member)) == null) {
+                                                continue;
+                                            }
+                                            sendPacket(socketMember, new SendMessageToClientPacket(msg));
+
+
+                                            //Send member joined packet
+
+                                        }
+                                        refreshForKukacEveryoneUwU();
+                                    }
+                                    sendPacket(socket, new RoomJoinResultPacket(event.getResult(), selectedRoom, new Date()));
+                                } else {
+                                    sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.CANCELLED, selectedRoom, new Date()));
+                                }
+                            } else if (packetObject instanceof PongPacket) {
+                                this.heartbeatTable.get(entry.getKey()).setFailCount(0);
+                                this.heartbeatTable.get(entry.getKey()).setLastPing(System.currentTimeMillis());
+                            } else if (packetObject instanceof DebugMessagePacket a) {
+                                System.out.println(a.getMessage());
+                            } else if (packetObject instanceof SendMessageToServerPacket packet) {
+                                Room selectedRoom = this.rooms.get(packet.getMessage().getRoom().getUniqueId());
+                                ServerReceiveMessageEvent event = new ServerReceiveMessageEvent(packet.getMessage());
+                                IMessage msg = event.getMessage();
+                                msg.setDate(new Date());
+
+                                String[] args = event.getMessage().getRawMessage().split(" ");
+                                if (event.getMessage().getRawMessage().startsWith("/")) {
+                                    ServerCommandPreprocessEvent cmdEvent = new ServerCommandPreprocessEvent(
+                                            entry.getValue(), selectedRoom, args[0], Arrays.copyOfRange(args, 1, args.length));
+
+                                    cmdEvent.callEvent();
+                                    Main.getCommandManager().callCommand(
+                                            cmdEvent.getMember(),
+                                            cmdEvent.getRoom(),
+                                            cmdEvent.getCommand().replaceFirst("/", ""),
+                                            cmdEvent.getArgs()
                                     );
-                                    selectedRoom.getMessages().add(msg);
+                                    continue;
+                                }
+                                if (event.callEvent()) {
+                                    Socket socketMember;
+
+                                    IMessage tempMsg = event.getMessage();
+                                    StringBuilder builder = new StringBuilder();
+                                    outer:
+                                    for (String s : tempMsg.getRawMessage().split(" ")) {
+                                        if (!s.startsWith("@")) {
+                                            builder.append(s).append(" ");
+                                            continue;
+                                        }
+
+                                        String name = s.replace("@", "");
+                                        for (Member member : selectedRoom.getMembers()) {
+                                            if (!member.getName().equalsIgnoreCase(name)) continue;
+                                            builder.append(TerminalManager.Color.YELLOW).append("@").append(member.getName()).append(TerminalManager.Color.RESET).append(" ");
+                                            sendNotification(member, Notifications.MENTION, entry.getValue().getDisplayName());
+                                            continue outer;
+                                        }
+                                        builder.append(s).append(" ");
+                                    }
+
+                                    event.getMessage().setMessage(builder.toString().strip());
+                                    selectedRoom.getMessages().add(event.getMessage());
+
                                     for (Member member : selectedRoom.getMembers()) {
                                         if ((socketMember = getSocketByMember(member)) == null) {
                                             continue;
                                         }
-                                        sendPacket(socketMember, new SendMessageToClientPacket(msg));
-
-
-                                        //Send member joined packet
-
+                                        sendPacket(socketMember, new SendMessageToClientPacket(event.getMessage()));
                                     }
-                                    refreshForKukacEveryoneUwU();
                                 }
-                                sendPacket(socket, new RoomJoinResultPacket(event.getResult(), selectedRoom, new Date()));
-                            } else {
-                                sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.CANCELLED, selectedRoom, new Date()));
-                            }
-                        } else if (packetObject instanceof PongPacket) {
-                            this.heartbeatTable.get(entry.getKey()).setFailCount(0);
-                            this.heartbeatTable.get(entry.getKey()).setLastPing(System.currentTimeMillis());
-                        } else if (packetObject instanceof DebugMessagePacket a) {
-                            System.out.println(a.getMessage());
-                        } else if (packetObject instanceof SendMessageToServerPacket packet) {
-                            Room selectedRoom = this.rooms.get(packet.getMessage().getRoom().getUniqueId());
-                            ServerReceiveMessageEvent event = new ServerReceiveMessageEvent(packet.getMessage());
-                            IMessage msg = event.getMessage();
-                            msg.setDate(new Date());
+                            } else if (packetObject instanceof CreateRoomPacket packet) {
+                                Room newRoom = new Room(UUID.randomUUID(), packet.getName(), entry.getValue().getUniqueId(), packet.getPassword(), new ArrayList<>(), packet.getMaxMembers(), new ArrayList<>(), new ArrayList<>(), false);
+                                ServerRoomCreateEvent event = new ServerRoomCreateEvent(newRoom);
+                                if (event.callEvent()) {
+                                    newRoom = event.getRoom();
 
-                            String[] args = event.getMessage().getRawMessage().split(" ");
-                            if (event.getMessage().getRawMessage().startsWith("/")) {
-                                ServerCommandPreprocessEvent cmdEvent = new ServerCommandPreprocessEvent(
-                                        entry.getValue(), selectedRoom, args[0], Arrays.copyOfRange(args, 1, args.length));
+                                    this.rooms.put(newRoom.getUniqueId(), newRoom);
+                                    entry.getValue().getRooms().add(newRoom);
 
-                                cmdEvent.callEvent();
-                                Main.getCommandManager().callCommand(
-                                        cmdEvent.getMember(),
-                                        cmdEvent.getRoom(),
-                                        cmdEvent.getCommand().replaceFirst("/", ""),
-                                        cmdEvent.getArgs()
-                                );
-                                continue;
-                            }
-                            if (event.callEvent()) {
-                                Socket socketMember;
-
-                                IMessage tempMsg = event.getMessage();
-                                StringBuilder builder = new StringBuilder();
-                                outer:
-                                for (String s : tempMsg.getRawMessage().split(" ")) {
-                                    if (!s.startsWith("@")) {
-                                        builder.append(s).append(" ");
-                                        continue;
-                                    }
-
-                                    String name = s.replace("@", "");
-                                    for (Member member : selectedRoom.getMembers()) {
-                                        if (!member.getName().equalsIgnoreCase(name)) continue;
-                                        builder.append(TerminalManager.Color.YELLOW).append("@").append(member.getName()).append(TerminalManager.Color.RESET).append(" ");
-                                        sendNotification(member, Notifications.MENTION, entry.getValue().getDisplayName());
-                                        continue outer;
-                                    }
-                                    builder.append(s).append(" ");
-                                }
-
-                                event.getMessage().setMessage(builder.toString().strip());
-                                selectedRoom.getMessages().add(event.getMessage());
-
-                                for (Member member : selectedRoom.getMembers()) {
-                                    if ((socketMember = getSocketByMember(member)) == null) {
-                                        continue;
-                                    }
-                                    sendPacket(socketMember, new SendMessageToClientPacket(event.getMessage()));
-                                }
-                            }
-                        } else if (packetObject instanceof CreateRoomPacket packet) {
-                            Room newRoom = new Room(UUID.randomUUID(), packet.getName(), entry.getValue().getUniqueId(), packet.getPassword(), new ArrayList<>(), packet.getMaxMembers(), new ArrayList<>(), new ArrayList<>(),false);
-                            ServerRoomCreateEvent event = new ServerRoomCreateEvent(newRoom);
-                            if (event.callEvent()) {
-                                newRoom = event.getRoom();
-
-                                this.rooms.put(newRoom.getUniqueId(), newRoom);
-                                entry.getValue().getRooms().add(newRoom);
-
-                                newRoom.addMember(entry.getValue());
+                                    newRoom.addMember(entry.getValue());
 
                                     if (newRoom.hasPassword()) {
                                         entry.getValue().getPasswords().put(newRoom.getUniqueId(), newRoom.getPassword());
                                     }
 
-                                SystemMessage msg = new SystemMessage(
-                                        newRoom,
-                                        SystemMessage.MessageType.ROOM_CREATE.setRoom(newRoom.getName()),
-                                        new Date(),
-                                        1);
-                                newRoom.getMessages().add(msg);
+                                    SystemMessage msg = new SystemMessage(
+                                            newRoom,
+                                            SystemMessage.MessageType.ROOM_CREATE.setRoom(newRoom.getName()),
+                                            new Date(),
+                                            1);
+                                    newRoom.getMessages().add(msg);
 
-                                sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.SUCCESS, newRoom, new Date()));
+                                    sendPacket(socket, new RoomJoinResultPacket(RoomJoinResult.SUCCESS, newRoom, new Date()));
 
+                                    refreshForKukacEveryoneUwU();
+                                    Main.getDatabaseManager().getDriver().exec(
+                                            "INSERT INTO rooms (uuid,name,owner,password,maxmembers,administrators,permanent) VALUES (?,?,?,?,?,?,?)",
+                                            newRoom.getUniqueId().toString(),
+                                            newRoom.getName(),
+                                            newRoom.getOwner() != null ? newRoom.getOwner().toString() : "",
+                                            newRoom.getPassword() != null ? newRoom.getPassword() : "",
+                                            newRoom.getMaxMembers(),
+                                            new String[]{},
+                                            false
+                                    );
+
+                                }
+                            }
+                        }
+                    } catch (IOException | ClassNotFoundException | ClassCastException | IllegalStateException e) {
+                        System.out.println("Error while parsing client!");
+                        try {
+                            sendPacket(socket, new ShutdownPacket());
+                            clientInputStreams.get(socket).close();
+
+                            sockets.remove(socket);
+                            heartbeatTable.remove(socket);
+
+                            boolean shouldRefresh = false;
+                            for (Room room : rooms.values()) {
+                                if (room.getMembers().contains(entry.getValue())) {
+                                    shouldRefresh = true;
+                                }
+                                room.removeMember(entry.getValue());
+                            }
+                            if (shouldRefresh) {
                                 refreshForKukacEveryoneUwU();
-                                Main.getDatabaseManager().getDriver().exec(
-                                        "INSERT INTO rooms (uuid,name,owner,password,maxmembers,administrators,permanent) VALUES (?,?,?,?,?,?,?)",
-                                        newRoom.getUniqueId().toString(),
-                                        newRoom.getName(),
-                                        newRoom.getOwner() != null ? newRoom.getOwner().toString() : "",
-                                        newRoom.getPassword() != null ? newRoom.getPassword() : "",
-                                        newRoom.getMaxMembers(),
-                                        new String[]{},
-                                        false
-                                );
-
                             }
+                            socket.close();
+                        } catch (IOException ex) {
+                            System.out.println("Error while handling shutdown packet!");
                         }
+                        e.printStackTrace();
                     }
-                } catch (IOException | ClassNotFoundException | ClassCastException | IllegalStateException e) {
-                    System.out.println("Error while parsing client!");
-                    try {
-                        sendPacket(socket, new ShutdownPacket());
-                        clientInputStreams.get(socket).close();
-
-                        sockets.remove(socket);
-                        heartbeatTable.remove(socket);
-
-                        boolean shouldRefresh = false;
-                        for (Room room : rooms.values()) {
-                            if(room.getMembers().contains(entry.getValue())) {
-                                shouldRefresh = true;
-                            }
-                            room.removeMember(entry.getValue());
-                        }
-                        if (shouldRefresh) {
-                            refreshForKukacEveryoneUwU();
-                        }
-                        socket.close();
-                    } catch (IOException ex) {
-                        System.out.println("Error while handling shutdown packet!");
-                    }
-                    e.printStackTrace();
                 }
             }
+            System.out.println("Na most gáz van");
+        } catch (Exception e) {
+            e.printStackTrace();
+            serverLoop();
         }
     }
 

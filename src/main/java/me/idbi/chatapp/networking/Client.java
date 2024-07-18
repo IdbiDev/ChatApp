@@ -140,8 +140,9 @@ public class Client {
                         } else if (packetObject instanceof SendMessageToClientPacket packet) {
                             ClientMessageEvent event = new ClientMessageEvent(packet.getMessage());
                             event.callEvent();
-                            if(Main.getClientData().getCurrentRoom() != null)
+                            if(Main.getClientData().getCurrentRoom() != null){
                                 Main.getClientData().getCurrentRoom().sendMessage(event.getMessage());
+                            }
                             //System.out.println(event.getMessage().getMessage());
                         } else if(packetObject instanceof ShutdownPacket) {
                             Main.getClientData().getViewManager().setView(ViewType.SERVER_SHUTDOWN);
