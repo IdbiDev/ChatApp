@@ -5,14 +5,16 @@ import lombok.Getter;
 import lombok.Setter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.messages.IMessage;
+import me.idbi.chatapp.networkside.*;
 import me.idbi.chatapp.networkside.Client;
-import me.idbi.chatapp.networkside.IllegalNetworkSideException;
 import me.idbi.chatapp.networkside.Server;
 import me.idbi.chatapp.notifications.Notifications;
 import me.idbi.chatapp.packets.server.MemberRoomLeavePacket;
 import me.idbi.chatapp.packets.server.SendMessageToClientPacket;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,7 +22,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @AllArgsConstructor
-public class Room implements Serializable {
+public class Room implements Serializable, Comparable<Room> {
 
     private UUID uniqueId;
     private String name;
@@ -35,7 +37,8 @@ public class Room implements Serializable {
     @Server
     public void disband() {
         if(!Main.isServer()) {
-            throw new IllegalNetworkSideException("This function is only callable from server-side");
+            throw new IllegalServerSideException();
+            //throw new IllegalNetworkSideException("This function is only callable from server-side");
         }
         for (Member member : this.members) {
             Main.getServer().sendPacket(member,new MemberRoomLeavePacket(member));
@@ -49,7 +52,8 @@ public class Room implements Serializable {
     @Server
     public void setPassword(String password) {
         if(!Main.isServer()) {
-            throw new IllegalNetworkSideException("This function is only callable from server-side");
+            throw new IllegalServerSideException();
+            // throw new IllegalNetworkSideException("This function is only callable from server-side");
         }
         this.password = password;
         Main.getServer().refreshForKukacEveryoneUwU();
@@ -60,7 +64,8 @@ public class Room implements Serializable {
     @Server
     public void setOwner(Member member) {
         if(!Main.isServer()) {
-            throw new IllegalNetworkSideException("This function is only callable from server-side");
+            throw new IllegalServerSideException();
+            //throw new IllegalNetworkSideException("This function is only callable from server-side");
         }
         this.owner = member.getUniqueId();
         Main.getDatabaseManager().getDriver().exec("UPDATE rooms SET owner = ? WHERE uuid = ?", this.getOwner(), this.getUniqueId());
@@ -70,7 +75,8 @@ public class Room implements Serializable {
     @Server
     public void rename(String newName) {
         if(!Main.isServer()) {
-            throw new IllegalNetworkSideException("This function is only callable from server-side");
+            throw new IllegalServerSideException();
+            //throw new IllegalNetworkSideException("This function is only callable from server-side");
         }
         this.name = newName;
         Main.getServer().refreshForKukacEveryoneUwU();
@@ -80,7 +86,8 @@ public class Room implements Serializable {
     @Server
     public void leave(Member member) {
         if(!Main.isServer()) {
-            throw new IllegalNetworkSideException("This function is only callable from server-side");
+            throw new IllegalServerSideException();
+            //throw new IllegalNetworkSideException("This function is only callable from server-side");
         }
         this.members.remove(member);
         Main.getServer().sendPacket(member, new MemberRoomLeavePacket(member));
@@ -114,7 +121,8 @@ public class Room implements Serializable {
     @Client
     public void sendMessage(IMessage message) {
         if(Main.isServer()) {
-            throw new IllegalNetworkSideException("This function is only callable from client-side");
+            throw new IllegalClientSideException();
+            //throw new IllegalNetworkSideException("This function is only callable from client-side");
         }
         messages.add(message);
         Main.getClientData().setRefreshChatRoom(true);
@@ -142,7 +150,8 @@ public class Room implements Serializable {
     @Server
     public void sendMessageServer(IMessage message) {
         if(!Main.isServer()) {
-            throw new IllegalNetworkSideException("This function is only callable from server-side");
+            throw new IllegalServerSideException();
+            // throw new IllegalNetworkSideException("This function is only callable from server-side");
         }
 
         this.messages.add(message);
@@ -154,7 +163,8 @@ public class Room implements Serializable {
     @Server
     public void togglePermanent() {
         if(!Main.isServer()) {
-            throw new IllegalNetworkSideException("This function is only callable from server-side");
+            throw new IllegalServerSideException();
+            // throw new IllegalNetworkSideException("This function is only callable from server-side");
         }
 
         if(this.permanent) {
@@ -176,7 +186,73 @@ public class Room implements Serializable {
     @Client
     @Server
     public boolean isOwner(Member member) {
-        if(this.owner == null) return false;
-        return member.getUniqueId().equals(this.owner);
+        return isOwner(member.getUniqueId());
+    }
+
+    @Override
+    public int compareTo(@NotNull Room o) {
+        // 1. szempont: saját szoba
+        // 2. szempont: megjegyzett jelszó
+        // 3. szempont: abc
+        if(!Main.isServer()) {
+
+            UUID member = Main.getClientData().getClientMember().getUniqueId();
+
+            if(this.owner == null || o.owner == null) {
+                return -1;
+            }
+            boolean r1Matches = this.owner.equals(member);
+            boolean r2Matches = o.owner.equals(member);
+            if(r1Matches) {
+                return 1;
+            } else if(r2Matches) {
+                return 0;
+            }
+
+            boolean psw1Matches = false;
+            boolean psw2Matches = false;
+            if(Main.getClientData().getClientMember().getPasswords().containsKey(this.uniqueId)) {
+                psw1Matches = Main.getClientData().getClientMember().getPasswords().get(this.uniqueId).equals(this.password);
+            }
+            if(Main.getClientData().getClientMember().getPasswords().containsKey(o.uniqueId)) {
+                psw2Matches = Main.getClientData().getClientMember().getPasswords().get(o.uniqueId).equals(o.password);
+            }
+
+            if(psw1Matches) {
+                return 1;
+            } else if(psw2Matches) {
+                return 0;
+            }
+
+        }
+        return this.name.compareTo(o.getName());
+
+//        UUID member = Main.getClientData().getClientMember().getUniqueId();
+//        if(this.owner == null || o.owner == null) {
+//            return this.name.compareTo(o.getName());
+//        }
+//
+//        boolean r1Matches = this.owner.equals(member);
+//        boolean r2Matches = o.owner.equals(member);
+//        if (r1Matches && !r2Matches) {
+//            return -1;
+//        } else if (!r1Matches && r2Matches) {
+//            return 1;
+//        }
+//
+//        // Priority 2: Password saved
+//        if ((Main.getClientData().getClientMember().getPasswords().containsKey(this.uniqueId)
+//                && Main.getClientData().getClientMember().getPasswords().get(this.uniqueId).equals(this.password))
+//                && !(Main.getClientData().getClientMember().getPasswords().containsKey(o.uniqueId)
+//                && Main.getClientData().getClientMember().getPasswords().get(o.uniqueId).equals(o.password))) {
+//            return -1;
+//        } else if (!(Main.getClientData().getClientMember().getPasswords().containsKey(this.uniqueId)
+//                && Main.getClientData().getClientMember().getPasswords().get(this.uniqueId).equals(this.password))
+//                && (Main.getClientData().getClientMember().getPasswords().containsKey(o.uniqueId)
+//                && Main.getClientData().getClientMember().getPasswords().get(o.uniqueId).equals(o.password))) {
+//            return 1;
+//        }
+//
+//        return this.name.compareTo(o.name);
     }
 }

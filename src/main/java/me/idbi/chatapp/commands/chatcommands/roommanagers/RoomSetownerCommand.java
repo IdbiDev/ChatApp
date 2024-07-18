@@ -20,6 +20,11 @@ public class RoomSetownerCommand implements CommandExecutor {
         }
 
         Member member = room.getMemberByName(args[0]);
+        if(member == null) {
+            Main.getServer().sendNotification(sender, Notifications.TARGET_NOT_FOUND);
+            return false;
+        }
+
         if(!member.getPermanentRooms().isEmpty()) {
             Main.getServer().sendNotification(sender, Notifications.ROOM_CREATE_TOO_MANY_ROOMS);
             return false;

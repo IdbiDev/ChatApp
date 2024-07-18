@@ -469,6 +469,7 @@ public class TerminalManager {
                                     switch (row) {
                                         case "Megerősítés": {
                                             Main.getClient().sendPacket(view.getPacket());
+                                            //Main.getClientData().getClientMember().getPasswords().put(view.getPacket().getPassword());
                                             Notifications.ROOM_CREATED.send();
                                             break;
                                         }

@@ -11,7 +11,7 @@ import me.idbi.chatapp.packets.server.SendMessageToClientPacket;
 public class LeaveCommand implements CommandExecutor {
     @Override
     public boolean onCommand(Member sender, Room room, String command, String[] args) {
-        // todo: leave+
+        //  todo: leave+
         room.leave(sender);
         // room.removeMember(sender);
         // Main.getServer().sendPacket(sender, new MemberRoomLeavePacket(sender));

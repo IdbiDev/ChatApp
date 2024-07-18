@@ -65,6 +65,9 @@ public class ClientRoomJoinEvent extends Event implements Cancellable {
             //Main.getClientData().getViewManager().changeView(ViewType,
             // 25448787.ROOM_LIST);
         } else {
+            if(this.room.hasPassword()) {
+                Main.getClientData().getClientMember().getPasswords().put(this.room.getUniqueId(), this.room.getPassword());
+            }
             Main.getClientData().getTerminalManager().clear();
             Main.getClientData().setCurrentRoom(this.room, this.joinAt);
 

@@ -15,8 +15,7 @@ import me.idbi.chatapp.view.ViewType;
 
 @Setter
 public class RoomCreateConfirmView implements IView, IView.Tableable {
-    @Getter
-    private CreateRoomPacket packet;
+    @Getter private CreateRoomPacket packet;
 
 
     @Override

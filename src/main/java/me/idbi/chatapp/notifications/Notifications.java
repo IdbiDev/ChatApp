@@ -9,6 +9,7 @@ public enum Notifications {
     NO_PERMISSION(new Notification("A művelet meghiúsult", "Ehhez nincs jogod!", Notification.NotificationType.ERROR)),
     WRONG_TEXT_INPUT(new Notification("Helytelen szöveg bemenet", null, Notification.NotificationType.ERROR)),
     COMMAND_USAGE(new Notification("Rossz parancs használat", "Használd: %s", Notification.NotificationType.ERROR)),
+    TARGET_NOT_FOUND(new Notification("Nem található felhasználó", "A megadott névvel nem található felhasználó a szobában.", Notification.NotificationType.ERROR)),
 
     MENTION(new Notification("Említetés", "%s megemlített az üzenetében!", Notification.NotificationType.WARNING)),
 

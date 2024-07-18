@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.networkside.Client;
+import me.idbi.chatapp.networkside.IllegalClientSideException;
 import me.idbi.chatapp.networkside.IllegalNetworkSideException;
 import me.idbi.chatapp.networkside.Server;
 import org.w3c.dom.Document;
@@ -41,7 +42,8 @@ public class Member implements Serializable {
     @Client
     public Map<UUID, String> loadPasswords() {
         if(Main.isServer()) {
-            throw new IllegalNetworkSideException("This function is only callable from client-side");
+            throw new IllegalClientSideException();
+            // throw new IllegalNetworkSideException("This function is only callable from client-side");
         }
 
         File f = new File(System.getenv("APPDATA") + "/ChatApp/passwords.xml");
@@ -77,7 +79,8 @@ public class Member implements Serializable {
     @Client
     public void savePasswords() {
         if(Main.isServer()) {
-            throw new IllegalNetworkSideException("This function is only callable from client-side");
+            throw new IllegalClientSideException();
+            // throw new IllegalNetworkSideException("This function is only callable from client-side");
         }
 
         try {

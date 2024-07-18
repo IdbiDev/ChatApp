@@ -186,64 +186,65 @@ public class Server {
 
                 if (!socket.isConnected() || socket.isClosed()) {
 
-                    System.out.println("Socket is closed");
-                    Socket socketMember;
-                    for (Room room : sockets.get(socket).getRooms()) {
-                        for (Member m : room.getMembers()) {
-                            if ((socketMember = getSocketByMember(m)) == null || socketMember == socket) {
-                                continue;
-                            }
-                            sendPacket(socketMember, new SendMessageToClientPacket(
-                                    new SystemMessage(
-                                            room,
-                                            SystemMessage.MessageType.QUIT.setMember(sockets.get(socket)),
-                                            1
-                                    ))
-                            );
-                        }
-                    }
-                    new ServerClientDisconnectEvent(sockets.get(entry.getKey()), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
-                    boolean shouldRefresh = false;
-                    for (Room room : rooms.values()) {
-                        if(room.getMembers().contains(entry.getValue())) {
-                            shouldRefresh = true;
-                        }
-                        room.removeMember(entry.getValue());
-                    }
-                    if (shouldRefresh) {
-                        refreshForKukacEveryoneUwU();
-                    }
-                    this.sockets.remove(socket);
-                    heartbeatTable.remove(socket);
-                }
-                try {
-                    if (socket.getInputStream().available() > 0) {
-                        if (!clientInputStreams.containsKey(socket)) {
-                            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-                            clientInputStreams.put(socket, in);
-                        }
-                        Object packetObject = clientInputStreams.get(socket).readObject();
-
-                        if (packetObject instanceof HandshakePacket packet) {
-                            Main.getDatabaseManager().getDriver().poll("SELECT * FROM users WHERE name = ?", packet.getId()).thenAcceptAsync(res -> {
-                                try {
-                                    if (res.next()) {
-                                        sockets.put(socket, new Member(UUID.fromString(res.getString("uuid")), res.getString("name"), res.getString("displayname"), new ArrayList<>(), new HashMap<>()));
-                                    } else {
-                                        sockets.put(socket, new Member(UUID.randomUUID(), packet.getId(), packet.getId(), new ArrayList<>(), new HashMap<>()));
-                                        Main.getDatabaseManager().getDriver().exec("INSERT INTO users (uuid,name,displayname) VALUES (?,?,?)", sockets.get(socket).getUniqueId().toString(), packet.getId(), packet.getId());
-                                    }
-                                } catch (SQLException e) {
-                                    e.printStackTrace();
+                        System.out.println("Socket is closed");
+                        Socket socketMember;
+                        for (Room room : this.sockets.get(socket).getRooms()) {
+                            for (Member m : room.getMembers()) {
+                                if ((socketMember = getSocketByMember(m)) == null || socketMember == socket) {
+                                    continue;
                                 }
-                                System.out.println("Client login: " + packet.getId());
-                                sendPacket(socket, new LoginPacket(sockets.get(socket)));
-                            });
-                        } else if (packetObject instanceof RequestRefreshPacket) {
-                            sendPacket(socket, new ReceiveRefreshPacket(this.rooms));
+                                sendPacket(socketMember, new SendMessageToClientPacket(
+                                        new SystemMessage(
+                                                room,
+                                                SystemMessage.MessageType.QUIT.setMember(this.sockets.get(socket)),
+                                                1
+                                        ))
+                                );
+                            }
+                        }
+                        new ServerClientDisconnectEvent(this.sockets.get(entry.getKey()), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
+                        boolean shouldRefresh = false;
+                        for (Room room : rooms.values()) {
+                            if (room.getMembers().contains(entry.getValue())) {
+                                shouldRefresh = true;
+                            }
+                            room.removeMember(entry.getValue());
+                        }
+                        if (shouldRefresh) {
+                            refreshForKukacEveryoneUwU();
+                        }
+                        this.sockets.remove(socket);
+                        this.heartbeatTable.remove(socket);
+                    }
+                    try {
+                        if (socket.getInputStream().available() > 0) {
+                            if (!this.clientInputStreams.containsKey(socket)) {
+                                ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+                                this.clientInputStreams.put(socket, in);
+                            }
+                            Object packetObject = this.clientInputStreams.get(socket).readObject();
 
-                        } else if (packetObject instanceof RoomJoinPacket packet) {
-                            Room selectedRoom = this.rooms.get(packet.getUniqueId());
+                            if (packetObject instanceof HandshakePacket packet) {
+                                Main.getDatabaseManager().getDriver().poll("SELECT * FROM users WHERE name = ?", packet.getId()).thenAcceptAsync(res -> {
+                                    try {
+                                        if (res.next()) {
+                                            this.sockets.put(socket, new Member(UUID.fromString(res.getString("uuid")), res.getString("name"), res.getString("displayname"), new ArrayList<>(), new HashMap<>()));
+                                        } else {
+                                            this.sockets.put(socket, new Member(UUID.randomUUID(), packet.getId(), packet.getId(), new ArrayList<>(), new HashMap<>()));
+                                            Main.getDatabaseManager().getDriver().exec("INSERT INTO users (uuid,name,displayname) VALUES (?,?,?)", sockets.get(socket).getUniqueId().toString(), packet.getId(), packet.getId());
+                                        }
+                                    } catch (SQLException e) {
+                                        e.printStackTrace();
+                                    }
+                                    System.out.println("Client login: " + packet.getId());
+                                    sendPacket(socket, new LoginPacket(this.sockets.get(socket)));
+
+                                });
+                            } else if (packetObject instanceof RequestRefreshPacket) {
+                                sendPacket(socket, new ReceiveRefreshPacket(this.rooms));
+
+                            } else if (packetObject instanceof RoomJoinPacket packet) {
+                                Room selectedRoom = this.rooms.get(packet.getUniqueId());
 
                             RoomJoinResult result = RoomJoinResult.SUCCESS;
 
@@ -358,6 +359,9 @@ public class Server {
 
                                 newRoom.addMember(entry.getValue());
 
+                                    if (newRoom.hasPassword()) {
+                                        entry.getValue().getPasswords().put(newRoom.getUniqueId(), newRoom.getPassword());
+                                    }
 
                                 SystemMessage msg = new SystemMessage(
                                         newRoom,
@@ -464,55 +468,48 @@ public class Server {
         @Override
         public void run() {
             while (true) {
+
                 try {
                     Thread.sleep(1000);
-                    for (Map.Entry<Socket, PingPongMember> entry : this.server.heartbeatTable.entrySet()) {
-                        if (entry.getValue().getLastPing() + 5500 > System.currentTimeMillis()) {
-                            this.server.sendPacket(entry.getKey(), new PingPacket());
-                            continue;
-                        }
-                        entry.getValue().setFailCount(entry.getValue().getFailCount() + 1);
-
-                        if (entry.getValue().getFailCount() <= 5) {
-                            continue;
-                        }
-
-                        // disconnect
-                        Socket socketMember;
-                        for (Room room : this.server.sockets.get(entry.getKey()).getRooms()) {
-                            for (Member m : room.getMembers()) {
-                                if ((socketMember = this.server.getSocketByMember(m)) == null || socketMember == entry.getKey()) {
-                                    continue;
+                    for (Map.Entry<Socket, PingPongMember> entry : server.heartbeatTable.entrySet()) {
+                        if (entry.getValue().getLastPing() + 5500 <= System.currentTimeMillis()) {
+                            entry.getValue().setFailCount(entry.getValue().getFailCount() + 1);
+                            if (entry.getValue().getFailCount() > 5) {
+                                // disconnect
+                                Socket socketMember;
+                                for (Room room : server.sockets.get(entry.getKey()).getRooms()) {
+                                    for (Member m : room.getMembers()) {
+                                        if ((socketMember = server.getSocketByMember(m)) == null || socketMember == entry.getKey()) {
+                                            continue;
+                                        }
+                                        server.sendPacket(socketMember, new SendMessageToClientPacket(
+                                                new SystemMessage(
+                                                        room,
+                                                        SystemMessage.MessageType.QUIT.setMember(server.sockets.get(entry.getKey())),
+                                                        1
+                                                ))
+                                        );
+                                    }
                                 }
-                                this.server.sendPacket(socketMember, new SendMessageToClientPacket(
-                                        new SystemMessage(
-                                                room,
-                                                SystemMessage.MessageType.QUIT.setMember(this.server.sockets.get(entry.getKey())),
-                                                1
-                                        ))
-                                );
+                                new ServerClientDisconnectEvent(server.sockets.get(entry.getKey()), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
+                                System.out.println(server.sockets.get(entry.getKey()).getName() + " disconnected from timeout");
+                                server.heartbeatTable.remove(entry.getKey());
+                                boolean shouldRefresh = false;
+                                for (Room room : this.server.getRooms().values()) {
+                                    if (room.getMembers().contains(this.server.sockets.get(entry.getKey()))) {
+                                        shouldRefresh = true;
+                                    }
+                                    room.removeMember(this.server.sockets.get(entry.getKey()));
+                                }
+
+                                if (shouldRefresh) {
+                                    this.server.refreshForKukacEveryoneUwU();
+                                }
+                                server.sockets.remove(entry.getKey());
+                                continue;
                             }
                         }
-
-                        new ServerClientDisconnectEvent(this.server.sockets.get(entry.getKey()), ServerClientDisconnectEvent.DisconnectReason.DISCONNECT).callEvent();
-
-                        System.out.println(this.server.sockets.get(entry.getKey()).getName() + " disconnected by timeout");
-
-                        this.server.heartbeatTable.remove(entry.getKey());
-
-                        boolean shouldRefresh = false;
-                        for (Room room : this.server.getRooms().values()) {
-                            if (room.getMembers().contains(this.server.sockets.get(entry.getKey()))) {
-                                shouldRefresh = true;
-                            }
-                            room.removeMember(this.server.sockets.get(entry.getKey()));
-                        }
-
-                        if (shouldRefresh) {
-                            this.server.refreshForKukacEveryoneUwU();
-                        }
-
-                        this.server.sockets.remove(entry.getKey());
+                        server.sendPacket(entry.getKey(), new PingPacket());
                     }
                 } catch (InterruptedException e) {
                     System.out.println("Thread stopped");

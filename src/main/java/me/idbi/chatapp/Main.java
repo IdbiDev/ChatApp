@@ -9,6 +9,7 @@ import me.idbi.chatapp.eventmanagers.EventManager;
 import me.idbi.chatapp.eventmanagers.interfaces.Listener;
 import me.idbi.chatapp.networking.Client;
 import me.idbi.chatapp.networking.Member;
+import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.networking.Server;
 import me.idbi.chatapp.notifications.Notification;
 import me.idbi.chatapp.packets.client.DebugMessagePacket;

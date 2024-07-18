@@ -68,6 +68,7 @@
 - Owner saját szobáit előre rakni és kiemelni
 - Mentett jelszavas szobák előre rakása
 - Esetleg fel, le nyillal message history és akk a pg up, down lesz csak a chat history pörgetésére
+- a jelszó mentése
     
     
     
