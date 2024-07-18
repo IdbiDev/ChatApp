@@ -1,0 +1,99 @@
+{
+    "notifications": {
+      "NO_PERMISSION": {
+        "title": "A művelet meghiúsult",
+        "description": "Ehhez nincs jogod!",
+        "type": "ERROR"
+      },
+      "WRONG_TEXT_INPUT": {
+        "title": "Helytelen szöveg bemenet",
+        "description": null,
+        "type": "ERROR"
+      },
+      "COMMAND_USAGE": {
+        "title": "Rossz parancs használat",
+        "description": "Használd: %s",
+        "type": "ERROR"
+      },
+      "TARGET_NOT_FOUND": {
+        "title": "Nem található felhasználó",
+        "description": "A megadott névvel nem található felhasználó a szobában.",
+        "type": "ERROR"
+      },
+      "MENTION": {
+        "title": "Említetés",
+        "description": "%s megemlített az üzenetében!",
+        "type": "WARNING"
+      },
+      "ROOM_IS_FULL": {
+        "title": "Sikertelen csatlakozás",
+        "description": "A szoba megtelt.",
+        "type": "ERROR"
+      },
+      "INVALID_ROOM": {
+        "title": "Sikertelen csatlakozás",
+        "description": "Ismeretlen szoba.",
+        "type": "ERROR"
+      },
+      "ROOM_JOIN_CANCELLED": {
+        "title": "Sikertelen csatlakozás",
+        "description": "Ismeretlen hiba.",
+        "type": "ERROR"
+      },
+      "ROOM_DISBANDED_OWNER": {
+        "title": "Szoba törlés",
+        "description": "A szobád törölve lett.",
+        "type": "INFO"
+      },
+      "ROOM_DISBANDED_MEMBERS": {
+        "title": "Szoba törlés",
+        "description": "A szoba amiben voltál törölve lett.",
+        "type": "INFO"
+      },
+      "ROOM_SETOWNER_SENDER": {
+        "title": "Sikeres tulajdonjog átruházás",
+        "description": "A szobád tulajdonjogát átruháztad egy másik felhasználóra.",
+        "type": "INFO"
+      },
+      "ROOM_SETOWNER_TARGET": {
+        "title": "Sikeres tulajdonjog átruházás",
+        "description": "A %s nevű szoba tulajdonjogát átruházták rád.",
+        "type": "INFO"
+      },
+      "ROOM_CREATED": {
+        "title": "Sikeres szoba létrehozás",
+        "description": "A szobád létre lett hozva.",
+        "type": "INFO"
+      },
+      "ROOM_PASSWORD_CHANGED": {
+        "title": "Sikeres jelszó változtatás",
+        "description": "Az új jelszó: %s",
+        "type": "INFO"
+      },
+      "ROOM_RENAMED": {
+        "title": "Sikeres újranevezés",
+        "description": "Sikeresen átnevezted a szobádat.",
+        "type": "INFO"
+      },
+      "ROOM_ALREADY_EXISTS": {
+        "title": "Sikertelen létrehozása",
+        "description": "Ilyen nevű szoba már létezik.",
+        "type": "ERROR"
+      },
+      "ROOM_CREATE_TOO_MANY_ROOMS": {
+        "title": "Sikertelen szoba létrehozás",
+        "description": "Túl sok szoba van a tulajdonodban.",
+        "type": "ERROR"
+      },
+      "ROOM_PERMANENT_ON": {
+        "title": "Örök szoba",
+        "description": "A szobád mostantól nem törlődik.",
+        "type": "INFO"
+      },
+      "ROOM_PERMANENT_OFF": {
+        "title": "Ideiglenes szoba",
+        "description": "Mostantól szobád törlődik inaktivitás esetén.",
+        "type": "WARNING"
+      }
+    }
+  }
