@@ -34,7 +34,6 @@ public enum Notifications {
     // permanent
     ROOM_PERMANENT_ON(new Notification("Örök szoba", "A szobád mostantól nem törlődik.", Notification.NotificationType.INFO)),
     ROOM_PERMANENT_OFF(new Notification("Ideiglenes szoba", "Mostantól szobád törlődik inaktivitás esetén.", Notification.NotificationType.WARNING)),
-
     ;
 
     private final Notification notification;

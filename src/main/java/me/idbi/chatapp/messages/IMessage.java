@@ -15,5 +15,4 @@ public interface IMessage {
     String getRawMessage();
     List<String> getMessage(int width);
     void setMessage(String message);
-
 }

@@ -18,6 +18,7 @@ import me.idbi.chatapp.view.ViewType;
 import java.io.*;
 import java.net.Socket;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class Client {

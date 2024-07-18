@@ -1,10 +1,16 @@
 package me.idbi.chatapp.utils;
 
+import dorkbox.util.Sys;
 import lombok.Getter;
 import me.idbi.chatapp.Main;
 import me.idbi.chatapp.messages.IMessage;
+import me.idbi.chatapp.networking.Member;
+import me.idbi.chatapp.networking.Room;
+import me.idbi.chatapp.networkside.Client;
+import me.idbi.chatapp.networkside.Server;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,5 +52,35 @@ public class Utils {
         }
         //Main.debug("9");
         return lines;
+    }
+
+    @Client
+    @Server
+    public static void sortRooms(Member member, List<Room> rooms) {
+        List<Room> copyRooms = new ArrayList<>(rooms);
+        List<Room> sortRooms = new ArrayList<>();
+        List<Room> owningRooms = rooms.stream().filter(r -> r.isOwner(member.getUniqueId())).toList();
+
+        List<Room> tempXD = new ArrayList<>(rooms);
+        tempXD.removeAll(owningRooms);
+        List<Room> savedPassword = tempXD.stream().filter(r -> {
+            if(r.hasPassword()) {
+                if (member.getPasswords().containsKey(r.getUniqueId())) {
+                    if(member.getPasswords().get(r.getUniqueId()).equals(r.getPassword())) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }).toList();
+
+        sortRooms.addAll(owningRooms.stream().sorted(Comparator.comparing(Room::getName)).toList());
+        sortRooms.addAll(savedPassword.stream().sorted(Comparator.comparing(Room::getName)).toList());
+
+        copyRooms.removeAll(sortRooms);
+        sortRooms.addAll(copyRooms.stream().sorted(Comparator.comparing(Room::getName)).toList());
+
+        rooms.clear();
+        rooms.addAll(sortRooms);
     }
 }

@@ -7,9 +7,12 @@ import me.idbi.chatapp.networking.Room;
 import me.idbi.chatapp.table.Column;
 import me.idbi.chatapp.table.Table;
 import me.idbi.chatapp.table.Row;
+import me.idbi.chatapp.utils.TerminalManager;
+import me.idbi.chatapp.utils.Utils;
 import me.idbi.chatapp.view.IView;
 import me.idbi.chatapp.view.ViewType;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -100,7 +103,8 @@ public class RoomListView implements IView, IView.Tableable {
     }
 
     private List<Room> getPageRooms() {
-        List<Room> rooms = Main.getClientData().getRooms().values().stream().sorted().toList();
+        List<Room> rooms = new ArrayList<>(Main.getClientData().getRooms().values().stream().sorted().toList());
+        Utils.sortRooms(Main.getClientData().getClientMember(), rooms);
 
         int state = Main.getClientData().getRoomListState();
         int amountOnPage = Main.getClientData().getTerminalManager().getTerminal().getHeight() - 9;

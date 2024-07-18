@@ -65,10 +65,10 @@
 - SQL Injection tiltása (készXD)
 - Mention (kész)
 - SQL queryk functionbe rakása a commandból (kész)
-- Owner saját szobáit előre rakni és kiemelni
-- Mentett jelszavas szobák előre rakása
+- Owner saját szobáit előre rakni és kiemelni (kiemelni nem lehetséges, amúgy kész)
+- Mentett jelszavas szobák előre rakása (kész)
 - Esetleg fel, le nyillal message history és akk a pg up, down lesz csak a chat history pörgetésére
-- a jelszó mentése
+- a jelszó mentése (kész)
     
     
     
