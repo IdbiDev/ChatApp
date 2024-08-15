@@ -26,7 +26,7 @@ public class DatabaseManager {
 
     public DatabaseManager() {
         this.host = "localhost";
-        this.port = 3306;
+        this.port = 5432;
         this.database = "postgres";
         this.username = "postgres";
         this.password = "admin";
