@@ -16,6 +16,10 @@ import java.util.concurrent.CompletableFuture;
 public class DatabaseDriver {
     public CompletableFuture<Integer> exec(String query, Object... args) {
         CompletableFuture<Integer> cmp = new CompletableFuture<>();
+        if(Main.getDatabaseManager().getConnection() == null){
+            cmp.complete(-1);
+            return cmp;
+        }
         try {
             PreparedStatement statement = Main.getDatabaseManager().getConnection().prepareStatement(query);
             int paramcount = 1;

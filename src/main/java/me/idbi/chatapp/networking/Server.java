@@ -37,10 +37,9 @@ public class Server {
     private final Map<Socket, PingPongMember> heartbeatTable;
     private final Map<Socket, ObjectInputStream> clientInputStreams;
     private final Map<Socket, ObjectOutputStream> clientOutputStreams;
-    private final Map<UUID, Room> rooms;
+    private final Map<UUID, Room> rooms = new ConcurrentHashMap<>();
 
     public Server(int port) {
-        this.rooms = new ConcurrentHashMap<>();
         this.sockets = new ConcurrentHashMap<>();
         this.heartbeatTable = new ConcurrentHashMap<>();
         this.clientInputStreams = new ConcurrentHashMap<>();
@@ -56,6 +55,18 @@ public class Server {
             Thread t2 = new Thread(this.heartbeatListener);
             t2.start();
             new ServerStartEvent(port).callEvent();
+            Room room = new Room(
+                    UUID.randomUUID(),
+                    "Beszélgető",
+                    null,
+                    null,
+                    new CopyOnWriteArrayList<>(),
+                    5,
+                    new CopyOnWriteArrayList<>(),
+                    new CopyOnWriteArrayList<>(),
+                    true
+            );
+            this.rooms.put(room.getUniqueId(), room);
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 System.out.println("Server shutting down");
 
@@ -227,6 +238,12 @@ public class Server {
                             Object packetObject = this.clientInputStreams.get(socket).readObject();
 
                             if (packetObject instanceof HandshakePacket packet) {
+                                if(Main.getDatabaseManager().getConnection() == null){
+                                    this.sockets.put(socket, new Member(UUID.randomUUID(), packet.getId(), packet.getId(), new ArrayList<>(), new HashMap<>()));
+                                    System.out.println("Client login: " + packet.getId());
+                                    sendPacket(socket, new LoginPacket(this.sockets.get(socket)));
+                                    continue;
+                                }
                                 Main.getDatabaseManager().getDriver().poll("SELECT * FROM users WHERE name = ?", packet.getId()).thenAcceptAsync(res -> {
                                     try {
                                         if (res.next()) {

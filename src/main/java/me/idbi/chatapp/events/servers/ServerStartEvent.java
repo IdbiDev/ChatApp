@@ -18,7 +18,10 @@ public class ServerStartEvent extends Event {
     @Override
     public boolean callEvent() {
         System.out.println("Server started");
+        if (Main.getDatabaseManager().getConnection() == null){
 
+            return true;
+        }
         Main.getDatabaseManager().getDriver().poll("SELECT * FROM rooms").thenAcceptAsync(result -> {
             try {
                 int rowCount = 0;
@@ -32,7 +35,7 @@ public class ServerStartEvent extends Event {
                             new CopyOnWriteArrayList<>(),
                             result.getInt("maxmembers"),
                             new CopyOnWriteArrayList<>(),
-                            new CopyOnWriteArrayList(Arrays.stream(((String[]) result.getArray("administrators").getArray())).map(UUID::fromString).toList()),
+                            new CopyOnWriteArrayList<>(Arrays.stream(((String[]) result.getArray("administrators").getArray())).map(UUID::fromString).toList()),
                             result.getBoolean("permanent")
                     );
                     Main.getServer().getRooms().put(room.getUniqueId(), room);
@@ -45,7 +48,7 @@ public class ServerStartEvent extends Event {
                             null,
                             null,
                             new CopyOnWriteArrayList<>(),
-                            0,
+                            5,
                             new CopyOnWriteArrayList<>(),
                             new CopyOnWriteArrayList<>(),
                             true
